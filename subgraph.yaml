@@ -15,7 +15,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.3
       language: wasm/assemblyscript
-      file: ./src/mapping.ts
+      file: ./src/kyberNetworkProxy.ts
       entities:
         - ProxyTrade
         - User
@@ -44,7 +44,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.3
       language: wasm/assemblyscript
-      file: ./src/mapping.ts
+      file: ./src/kyberNetwork.ts
       entities:
         - Reserve
         - KyberNetwork
@@ -91,7 +91,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.3
       language: wasm/assemblyscript
-      file: ./src/mapping.ts
+      file: ./src/kyberReserve.ts
       entities:
         - Reserve
         - ReserveTokenBalance
@@ -129,7 +129,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.3
       language: wasm/assemblyscript
-      file: ./src/mapping.ts
+      file: ./src/kyberNetwork.ts
       entities:
         - Reserve
         - KyberNetwork
