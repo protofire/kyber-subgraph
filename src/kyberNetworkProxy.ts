@@ -16,7 +16,7 @@ import {
   User
 } from "../generated/schema";
 import { KyberNetwork, KyberReserve } from "../generated/templates";
-import { getIdForExecuteTrade, getUser } from "./utils/helpers";
+import { getIdForExecuteTrade, getOrCreateUser } from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS } from "./utils/constants";
 
 export function handleKyberNetworkSet(event: KyberNetworkSet): void {
@@ -32,7 +32,7 @@ export function handleKyberNetworkSet(event: KyberNetworkSet): void {
   let old_id = event.params.oldNetworkContract.toHexString();
 
   let old_network = Network.load(old_id);
-  if (old_network === null) {
+  if (old_network == null) {
     // Ignore initial setup case for old network
     if (old_id == ZERO_ADDRESS) return;
 
@@ -46,10 +46,11 @@ export function handleKyberNetworkSet(event: KyberNetworkSet): void {
 export function handleExecuteTradeProxy(event: ExecuteTrade): void {
   let id = getIdForExecuteTrade(event);
   let trade = ProxyTrade.load(id);
-  if (trade === null) {
+  if (trade == null) {
     trade = new ProxyTrade(id);
   }
-  trade.trader = getUser(event.params.trader);
+  let user = getOrCreateUser(event.params.trader)
+  trade.trader = user.id;
   trade.src = event.params.src.toHexString();
   trade.dest = event.params.dest.toHexString();
   trade.actualSrcAmount = event.params.actualSrcAmount;

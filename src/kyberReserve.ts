@@ -18,7 +18,7 @@ import {
   TradeExecute,
   WithdrawFunds
 } from "../generated/templates/KyberReserve/KyberReserve";
-import { getIdForTradeExecute, getToken } from "./utils/helpers";
+import { getIdForTradeExecute, getOrCrateToken } from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS } from "./utils/constants";
 
 export function handleDepositToken(event: DepositToken): void {
@@ -27,7 +27,7 @@ export function handleDepositToken(event: DepositToken): void {
     .concat("-")
     .concat(event.params.token.toHexString());
   let reserveTokenBalance = ReserveTokenBalance.load(id);
-  if (reserveTokenBalance === null) {
+  if (reserveTokenBalance == null) {
     log.debug("handleDepositToken-{}", [id]);
     reserveTokenBalance = new ReserveTokenBalance(id);
     reserveTokenBalance.amount = BigInt.fromI32(0);
@@ -40,7 +40,7 @@ export function handleDepositToken(event: DepositToken): void {
   );
   reserveTokenBalance.save();
 
-  getToken(event.params.token);
+  getOrCrateToken(event.params.token);
 }
 
 export function handleWithdrawFunds(event: WithdrawFunds): void {
@@ -49,7 +49,7 @@ export function handleWithdrawFunds(event: WithdrawFunds): void {
     .concat("-")
     .concat(event.params.token.toHexString());
   let reserveTokenBalance = ReserveTokenBalance.load(id);
-  if (reserveTokenBalance === null) {
+  if (reserveTokenBalance == null) {
     log.error("Reserve token balance not found for WithdrawFunds. {}", [id]);
     return;
   }
@@ -67,7 +67,7 @@ export function handleEtherWithdraw(event: EtherWithdraw): void {
     .concat("-")
     .concat(ETH_ADDRESS);
   let reserveTokenBalance = ReserveTokenBalance.load(id);
-  if (reserveTokenBalance === null) {
+  if (reserveTokenBalance == null) {
     log.error("Reserve token balance not found for EtherWithdraw. {}", [id]);
     return;
   }
@@ -85,7 +85,7 @@ export function handleTokenWithdraw(event: TokenWithdraw): void {
     .concat("-")
     .concat(event.params.token.toHexString());
   let reserveTokenBalance = ReserveTokenBalance.load(id);
-  if (reserveTokenBalance === null) {
+  if (reserveTokenBalance == null) {
     log.error("Reserve token balance not found for TokenWithdraw. {}", [id]);
     return;
   }
@@ -98,11 +98,9 @@ export function handleTokenWithdraw(event: TokenWithdraw): void {
 }
 
 export function handleTradeExecuteReserve(event: TradeExecute): void {
-  /* Update ReserveTrade */
-
   let id = getIdForTradeExecute(event);
   let trade = ReserveTrade.load(id);
-  if (trade === null) {
+  if (trade == null) {
     trade = new ReserveTrade(id);
   }
   // trade.trader = getUser(event.params.)
@@ -124,7 +122,7 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
     .concat("-")
     .concat(event.params.src.toHexString());
   let src_reserveTokenBalance = ReserveTokenBalance.load(src_id);
-  if (src_reserveTokenBalance === null) {
+  if (src_reserveTokenBalance == null) {
     src_reserveTokenBalance = new ReserveTokenBalance(src_id);
     src_reserveTokenBalance.amount = BigInt.fromI32(0);
     src_reserveTokenBalance.reserve = event.address.toHexString();
@@ -141,7 +139,7 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
     .concat("-")
     .concat(event.params.destToken.toHexString());
   let dest_reserveTokenBalance = ReserveTokenBalance.load(dest_id);
-  if (dest_reserveTokenBalance === null) {
+  if (dest_reserveTokenBalance == null) {
     dest_reserveTokenBalance = new ReserveTokenBalance(dest_id);
     dest_reserveTokenBalance.amount = BigInt.fromI32(0);
     dest_reserveTokenBalance.reserve = event.address.toHexString();
@@ -159,7 +157,7 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
 export function handleTradeEnabled(event: TradeEnabled): void {
   let id = event.address.toHexString();
   let reserve = Reserve.load(id);
-  if (reserve === null) {
+  if (reserve == null) {
     log.error("Could not load reserve with trade enabled. {}", [id]);
     return;
   }
@@ -170,7 +168,7 @@ export function handleTradeEnabled(event: TradeEnabled): void {
 export function handleSetContractAddresses(event: SetContractAddresses): void {
   let id = event.address.toHexString();
   let reserve = Reserve.load(id);
-  if (reserve === null) {
+  if (reserve == null) {
     log.error("Could not load reserve with handleSetContractAddresses. {}", [
       id
     ]);
