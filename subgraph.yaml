@@ -132,7 +132,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.3
       language: wasm/assemblyscript
-      file: ./src/kyberReserve.ts
+      file: ./src/orderbookReserve.ts
       entities:
         - OrderbookReserve
         - Order

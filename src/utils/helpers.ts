@@ -1,13 +1,11 @@
-import { Address, log } from "@graphprotocol/graph-ts";
-import { ExecuteTrade } from "../../generated/KyberNetworkProxy/KyberNetworkProxy";
-import { TradeExecute } from "../../generated/templates/KyberReserve/KyberReserve";
 import { User, Token, Order } from "../../generated/schema";
+import { Address, EthereumEvent, log } from "@graphprotocol/graph-ts";
 
-export function getIdForExecuteTrade(event: ExecuteTrade): string {
+export function getIdForExecuteTrade(event: EthereumEvent): string {
   return event.block.number.toHexString().concat(event.logIndex.toHexString());
 }
 
-export function getIdForTradeExecute(event: TradeExecute): string {
+export function getIdForTradeExecute(event: EthereumEvent): string {
   return event.block.number.toHexString().concat(event.logIndex.toHexString());
 }
 
@@ -34,7 +32,7 @@ export function getOrCreateUser(address: Address): User {
   return user as User;
 }
 
-export function gerOrCreateOrder(orderId: String, reserveId: String): Order {
+export function getOrCreateOrder(orderId: String, reserveId: String): Order {
   let order = Order.load(orderId);
 
   if (order == null) {
