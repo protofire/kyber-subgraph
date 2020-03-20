@@ -4,7 +4,6 @@ import {
   Reserve,
   ReserveTokenBalance,
   Token,
-  ProxyTrade,
   ReserveTrade,
   TradingPair,
   User,
@@ -30,7 +29,7 @@ import {
 } from "../generated/templates/MergedKyberReserve/MergedKyberReserve";
 import {
   getIdForTradeExecute,
-  getOrCrateToken,
+  getOrCreateToken,
   getOrCreateOrder,
   getIdForTradeExecute
 } from "./utils/helpers";
@@ -60,7 +59,7 @@ export function handleDepositToken(event: DepositToken): void {
   );
   reserveTokenBalance.save();
 
-  getOrCrateToken(event.params.token);
+  getOrCreateToken(event.params.token);
 }
 
 export function handleWithdrawFunds(event: WithdrawFunds): void {
@@ -123,6 +122,19 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
   if (trade == null) {
     trade = new ReserveTrade(id);
   }
+
+  let reserve = Reserve.load(event.address.toHexString());
+  if (reserve == null) {
+    log.warning("Reserve is null for address: {}", [
+      event.address.toHexString()
+    ]);
+  }
+
+  if (reserve.type == null) {
+    reserve.type = KYBER_RESERVE;
+    reserve.save();
+  }
+
   // trade.trader = getUser(event.params.)
   trade.src = event.params.src.toHexString();
   trade.dest = event.params.destToken.toHexString();
@@ -197,7 +209,9 @@ export function handleSetContractAddresses(event: SetContractAddresses): void {
   reserve.network = event.params.network.toHexString();
   reserve.rateContract = event.params.rate.toHexString();
   reserve.sanityContract = event.params.sanity.toHexString();
-  reserve.type = KYBER_RESERVE;
+  if (reserve.type == null) {
+    reserve.type = KYBER_RESERVE;
+  }
   reserve.save();
 }
 
@@ -209,7 +223,20 @@ export function handleNewLimitOrder(event: NewLimitOrder): void {
     .concat("-")
     .concat(event.params.orderId.toString());
   let order = getOrCreateOrder(orderId, event.address.toHexString());
-  order.creator = event.params.maker;
+
+  let reserve = Reserve.load(event.address.toHexString());
+  if (reserve == null) {
+    log.warning("Reserve is null for address: {}", [
+      event.address.toHexString()
+    ]);
+  }
+
+  if (reserve.type == null) {
+    reserve.type = ORDERBOOK_RESERVE;
+    reserve.save();
+  }
+
+  order.creator = event.params.maker.toHexString();
   order.srcAmount = event.params.srcAmount;
   order.destAmount = event.params.dstAmount;
   order.isEthToToken = event.params.isEthToToken;
@@ -233,8 +260,10 @@ export function handleOrderbookTrade(event: OrderbookReserveTrade): void {
     ]);
   }
 
-  reserve.type = ORDERBOOK_RESERVE;
-  reserve.save();
+  if (reserve.type == null) {
+    reserve.type = KYBER_RESERVE;
+    reserve.save();
+  }
 
   trade.src = event.params.srcToken.toHexString();
   trade.dest = event.params.dstToken.toHexString();
@@ -277,7 +306,7 @@ export function handleOrderUpdated(event: OrderUpdated): void {
     .concat(event.params.orderId.toString());
   let order = getOrCreateOrder(orderId, event.address.toHexString());
 
-  order.creator = event.params.maker;
+  order.creator = event.params.maker.toHexString();
   order.srcAmount = event.params.srcAmount;
   order.destAmount = event.params.dstAmount;
   order.isEthToToken = event.params.isEthToToken;
@@ -293,12 +322,4 @@ export function handleOrderCanceled(event: OrderCanceled): void {
 
   order.isCancelled = true;
   order.save();
-}
-
-export function handleTokenDeposited(event: TokenDeposited): void {
-  log.warning("TokenDeposited Orderbook", []);
-}
-
-export function handleEtherDeposited(event: EtherDeposited): void {
-  log.warning("EtherDeposited Orderbook", []);
 }

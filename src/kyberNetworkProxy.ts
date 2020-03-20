@@ -10,7 +10,6 @@ import {
   Reserve,
   ReserveTokenBalance,
   Token,
-  ProxyTrade,
   ReserveTrade,
   TradingPair,
   User
@@ -46,21 +45,21 @@ export function handleKyberNetworkSet(event: KyberNetworkSet): void {
   old_network.save();
 }
 
-export function handleExecuteTradeProxy(event: ExecuteTrade): void {
-  let id = getIdForTradeExecute(event);
-  let trade = ProxyTrade.load(id);
-  if (trade == null) {
-    trade = new ProxyTrade(id);
-  }
-  let user = getOrCreateUser(event.params.trader);
-  trade.trader = user.id;
-  trade.src = event.params.src.toHexString();
-  trade.dest = event.params.dest.toHexString();
-  trade.actualSrcAmount = event.params.actualSrcAmount;
-  trade.actualDestAmount = event.params.actualDestAmount;
-  trade.createdAtBlockTimestamp = event.block.timestamp;
-  trade.createdAtBlockNumber = event.block.number;
-  trade.createdAtLogIndex = event.logIndex;
-  trade.createdAtTransactionHash = event.transaction.hash.toHexString();
-  trade.save();
-}
+// export function handleExecuteTradeProxy(event: ExecuteTrade): void {
+//   let id = getIdForTradeExecute(event);
+//   let trade = ProxyTrade.load(id);
+//   if (trade == null) {
+//     trade = new ProxyTrade(id);
+//   }
+//   let user = getOrCreateUser(event.params.trader);
+//   trade.trader = user.id;
+//   trade.src = event.params.src.toHexString();
+//   trade.dest = event.params.dest.toHexString();
+//   trade.actualSrcAmount = event.params.actualSrcAmount;
+//   trade.actualDestAmount = event.params.actualDestAmount;
+//   trade.createdAtBlockTimestamp = event.block.timestamp;
+//   trade.createdAtBlockNumber = event.block.number;
+//   trade.createdAtLogIndex = event.logIndex;
+//   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
+//   trade.save();
+// }

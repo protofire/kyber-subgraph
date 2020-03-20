@@ -18,7 +18,6 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/kyberNetworkProxy.ts
       entities:
-        - ProxyTrade
         - User
         - KyberNetwork
       abis:
@@ -27,8 +26,8 @@ dataSources:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: ExecuteTrade(indexed address,address,address,uint256,uint256)
-          handler: handleExecuteTradeProxy
+        # - event: ExecuteTrade(indexed address,address,address,uint256,uint256)
+        #   handler: handleExecuteTradeProxy
   # - AdminClaimed(address,address)
   # - AlerterAdded(address,bool)
   # - EtherWithdraw(uint256,address)
@@ -55,6 +54,7 @@ dataSources:
         - KyberNetwork
         - Token
         - TradingPair
+        - FullTrade
       abis:
         - name: KyberNetwork
           file: ./abis/KyberNetwork.json
@@ -80,7 +80,8 @@ dataSources:
   # - KyberNetwrokParamsSet(uint256,uint256)
         # - event: KyberProxySet(address,address)
           # handler: handleKyberProxySet
-  # - KyberTrade(indexed address,address,address,uint256,uint256,address,uint256,address,address,bytes)
+        - event: KyberTrade(indexed address,address,address,uint256,uint256,address,uint256,address,address,bytes)
+          handler: handleKyberTrade
   # - OperatorAdded(address,bool)
   # - TokenWithdraw(address,uint256,address)
   # - TransferAdminPending(address)
@@ -138,10 +139,10 @@ templates:
           handler: handleOrderUpdated
         - event: OrderCanceled(indexed address,bool,uint32,uint128,uint256)
           handler: handleOrderCanceled
-        - event: TokenDeposited(indexed address,uint256)
-          handler: handleTokenDeposited
-        - event: EtherDeposited(indexed address,uint256)
-          handler: handleEtherDeposited
+        # - event: TokenDeposited(indexed address,uint256)
+        #   handler: handleTokenDeposited
+        # - event: EtherDeposited(indexed address,uint256)
+        #   handler: handleEtherDeposited
   # - kind: ethereum/contract
   #   name: OrderbookReserve
   #   network: mainnet
@@ -217,7 +218,8 @@ templates:
   # - KyberNetwrokParamsSet(uint256,uint256)
         # - event: KyberProxySet(address,address)
           # handler: handleKyberProxySet
-  # - KyberTrade(indexed address,address,address,uint256,uint256,address,uint256,address,address,bytes)
+        - event: KyberTrade(indexed address,address,address,uint256,uint256,address,uint256,address,address,bytes)
+          handler: handleKyberTrade
   # - OperatorAdded(address,bool)
   # - TokenWithdraw(address,uint256,address)
   # - TransferAdminPending(address)

@@ -5,19 +5,22 @@ import {
   RemoveReserveFromNetwork,
   KyberNetworkSetEnable,
   ListReservePairs,
-  ListReservePairs1
+  ListReservePairs1,
+  KyberTrade
 } from "../generated/templates/KyberNetwork/KyberNetwork";
-import {
-  Network,
-  Reserve,
-  TradingPair
-} from "../generated/schema";
+import { Network, Reserve, TradingPair, FullTrade } from "../generated/schema";
 import {
   KyberNetwork,
   MergedKyberReserve as KyberReserve
 } from "../generated/templates";
-import { getOrCrateToken } from "./utils/helpers";
+import {
+  getOrCreateToken,
+  getOrCreateFullTrade,
+  getIdForTradeExecute,
+  getOrCreateUser
+} from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS } from "./utils/constants";
+import { toDecimal } from "./utils/decimals";
 
 export function handleKyberNetworkSetEnable(
   event: KyberNetworkSetEnable
@@ -114,8 +117,8 @@ export function handleListReservePairs(event: ListReservePairs): void {
   tradingPair.isTradingPairEnabled = event.params.add;
   tradingPair.save();
 
-  getOrCrateToken(event.params.src);
-  getOrCrateToken(event.params.dest);
+  getOrCreateToken(event.params.src);
+  getOrCreateToken(event.params.dest);
 }
 
 export function handleListReservePairsV1(event: ListReservePairs1): void {
@@ -143,6 +146,36 @@ export function handleListReservePairsV1(event: ListReservePairs1): void {
   tradingPair.isTradingPairEnabled = event.params.add;
   tradingPair.save();
 
-  getOrCrateToken(event.params.src);
-  getOrCrateToken(event.params.dest);
+  getOrCreateToken(event.params.src);
+  getOrCreateToken(event.params.dest);
+}
+
+export function handleKyberTrade(event: KyberTrade): void {
+  let id = getIdForTradeExecute(event);
+  let trade = getOrCreateFullTrade(id);
+  let user = getOrCreateUser(event.params.trader);
+  let srcToken = getOrCreateToken(event.params.src);
+  let destToken = getOrCreateToken(event.params.dest);
+
+  trade.trader = user.id;
+  trade.src = event.params.src.toHexString();
+  trade.dest = event.params.dest.toHexString();
+  trade.rawSrcAmount = event.params.srcAmount;
+  trade.rawDestAmount = event.params.dstAmount;
+  trade.actualSrcAmount = toDecimal(
+    event.params.srcAmount,
+    srcToken.decimals
+  );
+  trade.actualDestAmount = toDecimal(
+    event.params.dstAmount,
+    destToken.decimals
+  );
+  trade.reserveSrcToEth = event.params.reserve1.toHexString();
+  trade.reserveEthToDest = event.params.reserve2.toHexString();
+  trade.ethWeiValue = event.params.ethWeiValue;
+  trade.createdAtBlockTimestamp = event.block.timestamp;
+  trade.createdAtBlockNumber = event.block.number;
+  trade.createdAtLogIndex = event.logIndex;
+  trade.createdAtTransactionHash = event.transaction.hash.toHexString();
+  trade.save();
 }

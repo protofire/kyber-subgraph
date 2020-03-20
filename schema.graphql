@@ -1,19 +1,40 @@
 enum ReserveType {
-  KYBER_RESERVE, ORDERBOOK_RESERVE
+  KYBER_RESERVE
+  ORDERBOOK_RESERVE
 }
 
-type ProxyTrade @entity {
-  "This object is a summary of one or more trades handled through reserves."
+type FullTrade @entity {
+  "This entity represents the full trade at the network level. It involves multiple trades at the reserve level"
   id: ID!
   trader: User!
-  "From token address"
-  src: String!
-  "To token address"
-  dest: String!
-  "From token amount in wei"
-  actualSrcAmount: BigInt!
-  "To token amount in wei"
-  actualDestAmount: BigInt!
+
+  "Source token"
+  src: Token!
+
+  "Destination token"
+  dest: Token!
+
+  "Source token amount in wei"
+  rawSrcAmount: BigInt!
+
+  "Destination token amount in wei"
+  rawDestAmount: BigInt!
+
+  "Source token amount converted to base units"
+  actualSrcAmount: BigDecimal!
+
+  "Destination token amount converted to base units"
+  actualDestAmount: BigDecimal!
+
+  "Reserve used to trade source token to ETH"
+  reserveSrcToEth: Reserve!
+
+  "Reserve used to trade ETH to destination token"
+  reserveEthToDest: Reserve!
+
+  "Value of the trade represented in wei (ETH)"
+  ethWeiValue: BigInt!
+
   createdAtBlockTimestamp: BigInt!
   createdAtBlockNumber: BigInt!
   createdAtLogIndex: BigInt!
@@ -23,8 +44,12 @@ type ProxyTrade @entity {
 type User @entity {
   "Ethereum address"
   id: ID!
+
   "Trades by user"
-  trades: [ProxyTrade!] @derivedFrom(field: "trader")
+  trades: [FullTrade!]! @derivedFrom(field: "trader")
+
+  "Orders created by the user"
+  orders: [Order!]! @derivedFrom(field: "creator")
 }
 
 type Reserve @entity {
@@ -59,7 +84,7 @@ type Reserve @entity {
   tokenBalances: [ReserveTokenBalance!] @derivedFrom(field: "reserve")
 
   "Orders for this reserve. Only ORDERBOOK_RESERVE will have orders."
-  orders: [Order!]! @derivedFrom(field: "reserve")
+  orders: [Order!] @derivedFrom(field: "reserve")
 
   "Reserve trading pairs"
   tradingPairs: [TradingPair!]! @derivedFrom(field: "reserve")
@@ -78,7 +103,7 @@ type Order @entity {
   srcAmount: BigInt
   destAmount: BigInt
   isEthToToken: Boolean
-  creator: Bytes
+  creator: User!
   createdAtBlockTimestamp: BigInt!
   createdAtBlockNumber: BigInt!
   createdAtLogIndex: BigInt!
@@ -96,16 +121,21 @@ type Network @entity {
 }
 
 type ReserveTrade @entity {
-  "This object is a single trade handled by a specific reserve - the result of which is also counted in ProxyTrade."
+  "This entity represents a single reserve trade. Multiple of these trades will be used to complete a FullTrade"
   id: ID!
+
   "From token address"
   src: String!
+
   "To token address"
   dest: String!
+
   "From token amount  (wei)"
   srcAmount: BigInt!
+
   "To token amount (wei)"
   destAmount: BigInt!
+
   reserve: Reserve!
   createdAtBlockTimestamp: BigInt!
   createdAtBlockNumber: BigInt!
@@ -116,10 +146,13 @@ type ReserveTrade @entity {
 type TradingPair @entity {
   id: ID!
   reserve: Reserve!
+
   "From token address"
   src: String!
+
   "To token address"
   dest: String!
+
   isTradingPairEnabled: Boolean!
 }
 
@@ -138,13 +171,15 @@ type Token @entity {
   decimals: Int!
 
   "Reserve balances of this token"
-  reserveBalances: [ReserveTokenBalance!] @derivedFrom(field: "token")
+  reserveBalances: [ReserveTokenBalance!]! @derivedFrom(field: "token")
 }
 
 type ReserveTokenBalance @entity {
   id: ID!
+
   "Token amount (wei)"
   amount: BigInt!
+
   reserve: Reserve!
   token: Token!
 }

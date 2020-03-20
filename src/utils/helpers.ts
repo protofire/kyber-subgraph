@@ -1,4 +1,4 @@
-import { User, Token, Order } from "../../generated/schema";
+import { User, Token, Order, FullTrade } from "../../generated/schema";
 import { ERC20 } from '../../generated/KyberNetworkProxy/ERC20'
 import { Address, EthereumEvent, log } from "@graphprotocol/graph-ts";
 import { DEFAULT_DECIMALS } from "./decimals";
@@ -33,9 +33,9 @@ export function getOrCreateOrder(orderId: String, reserveId: String): Order {
 }
 
 export function getOrCreateToken(
-  address: Address,
+  tokenAddress: Address,
   persist: boolean = true
-): Asset {
+): Token {
   let addressString = tokenAddress.toHexString();
 
   let token = Token.load(addressString);
@@ -43,7 +43,7 @@ export function getOrCreateToken(
   if (token == null) {
     token = new Token(addressString);
 
-    if (tokenAddress == ZERO_ADDRESS) {
+    if (tokenAddress.toHexString() == ZERO_ADDRESS) {
       token.address = null;
       token.decimals = DEFAULT_DECIMALS;
       token.name = "Unknown Asset";
@@ -89,16 +89,15 @@ export function getOrCreateToken(
     }
   }
 
-  return token as Asset;
+  return token as Token;
 }
 
-// export function getOrCreateReserveTrade(event: OrderbookReserveTrade): OrderbookTrade {
-//   let tradeId = getIdForTradeExecute(event)
-//   let trade = OrderbookTrade.load(tradeId);
-//
-//   if (trade == null) {
-//     trade = new OrderbookTrade(tradeId);
-//   }
-//
-//   return trade as OrderbookTrade;
-// }
+export function getOrCreateFullTrade(tradeId: String): FullTrade {
+  let trade = FullTrade.load(tradeId);
+
+  if (trade == null) {
+    trade = new FullTrade(tradeId);
+  }
+
+  return trade as FullTrade;
+}
