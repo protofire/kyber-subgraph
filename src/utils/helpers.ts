@@ -1,24 +1,11 @@
 import { User, Token, Order } from "../../generated/schema";
+import { ERC20 } from '../../generated/KyberNetworkProxy/ERC20'
 import { Address, EthereumEvent, log } from "@graphprotocol/graph-ts";
-
-export function getIdForExecuteTrade(event: EthereumEvent): string {
-  return event.block.number.toHexString().concat(event.logIndex.toHexString());
-}
+import { DEFAULT_DECIMALS } from "./decimals";
+import { ZERO_ADDRESS } from "./constants";
 
 export function getIdForTradeExecute(event: EthereumEvent): string {
   return event.block.number.toHexString().concat(event.logIndex.toHexString());
-}
-
-export function getOrCrateToken(address: Address): Token {
-  let id = address.toHexString();
-  let token = Token.load(id);
-
-  if (token == null) {
-    token = new Token(id);
-    token.save();
-  }
-
-  return token as Token;
 }
 
 export function getOrCreateUser(address: Address): User {
@@ -40,8 +27,78 @@ export function getOrCreateOrder(orderId: String, reserveId: String): Order {
     order.isCancelled = false;
     order.isRemoved = false;
     order.reserve = reserveId;
-    order.save();
   }
 
   return order as Order;
 }
+
+export function getOrCreateToken(
+  address: Address,
+  persist: boolean = true
+): Asset {
+  let addressString = tokenAddress.toHexString();
+
+  let token = Token.load(addressString);
+
+  if (token == null) {
+    token = new Token(addressString);
+
+    if (tokenAddress == ZERO_ADDRESS) {
+      token.address = null;
+      token.decimals = DEFAULT_DECIMALS;
+      token.name = "Unknown Asset";
+      token.symbol = "";
+    } else {
+      token.address = tokenAddress;
+
+      let erc20Token = ERC20.bind(tokenAddress);
+
+      let tokenDecimals = erc20Token.try_decimals();
+      let tokenName = erc20Token.try_name();
+      let tokenSymbol = erc20Token.try_symbol();
+
+      token.decimals = !tokenDecimals.reverted
+        ? tokenDecimals.value
+        : DEFAULT_DECIMALS;
+      token.name = !tokenName.reverted ? tokenName.value : "";
+      token.symbol = !tokenSymbol.reverted ? tokenSymbol.value : "";
+
+      // Handle Single-Collateral Dai manually since isn't a detailed token
+      if (
+        token.address.toHexString() ==
+        "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359"
+      ) {
+        token.decimals = 18;
+        token.name = "Sai Stablecoin v1.0";
+        token.symbol = "SAI";
+      }
+
+      // Handle ETH representation on kyber
+      if (
+        token.address.toHexString() ==
+        "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      ) {
+        token.decimals = 18;
+        token.name = "Ether";
+        token.symbol = "ETH";
+      }
+    }
+
+    if (persist) {
+      token.save();
+    }
+  }
+
+  return token as Asset;
+}
+
+// export function getOrCreateReserveTrade(event: OrderbookReserveTrade): OrderbookTrade {
+//   let tradeId = getIdForTradeExecute(event)
+//   let trade = OrderbookTrade.load(tradeId);
+//
+//   if (trade == null) {
+//     trade = new OrderbookTrade(tradeId);
+//   }
+//
+//   return trade as OrderbookTrade;
+// }

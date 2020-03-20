@@ -24,6 +24,8 @@ dataSources:
       abis:
         - name: KyberNetworkProxy
           file: ./abis/KyberNetworkProxy.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: ExecuteTrade(indexed address,address,address,uint256,uint256)
           handler: handleExecuteTradeProxy
@@ -86,10 +88,10 @@ dataSources:
 templates:
   # These data sources templates exist to support the different flags that a token could specify- kind: ethereum/contract
   - kind: ethereum/contract
-    name: KyberReserve
+    name: MergedKyberReserve
     network: mainnet
     source:
-      abi: KyberReserve
+      abi: MergedKyberReserve
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -100,9 +102,10 @@ templates:
         - ReserveTokenBalance
         - ReserveTrade
         - Token
+        - Order
       abis:
-        - name: KyberReserve
-          file: ./abis/KyberReserve.json
+        - name: MergedKyberReserve
+          file: ./abis/MergedKyberReserve.json
       eventHandlers:
         - event: DepositToken(address,uint256)
           handler: handleDepositToken
@@ -123,25 +126,6 @@ templates:
   # - WithdrawAddressApproved(address,address,bool)
         - event: WithdrawFunds(address,uint256,address)
           handler: handleWithdrawFunds
-  - kind: ethereum/contract
-    name: OrderbookReserve
-    network: mainnet
-    source:
-      abi: OrderbookReserve
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.3
-      language: wasm/assemblyscript
-      file: ./src/orderbookReserve.ts
-      entities:
-        - OrderbookReserve
-        - Order
-        - ReserveTrade
-        - Token
-      abis:
-        - name: OrderbookReserve
-          file: ./abis/OrderbookReserve.json
-      eventHandlers:
         - event: NewLimitOrder(indexed address,uint32,bool,uint128,uint128,bool)
           handler: handleNewLimitOrder
         - event: OrderbookReserveTrade(address,address,uint256,uint256)
@@ -154,10 +138,45 @@ templates:
           handler: handleOrderUpdated
         - event: OrderCanceled(indexed address,bool,uint32,uint128,uint256)
           handler: handleOrderCanceled
-        # - event: TokenDeposited(indexed address,uint256)
-        #   handler: handleTokenDeposited
-        # - event: EtherDeposited(indexed address,uint256)
-        #   handler: handleEtherDeposited
+        - event: TokenDeposited(indexed address,uint256)
+          handler: handleTokenDeposited
+        - event: EtherDeposited(indexed address,uint256)
+          handler: handleEtherDeposited
+  # - kind: ethereum/contract
+  #   name: OrderbookReserve
+  #   network: mainnet
+  #   source:
+  #     abi: OrderbookReserve
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.3
+  #     language: wasm/assemblyscript
+  #     file: ./src/orderbookReserve.ts
+  #     entities:
+  #       - OrderbookReserve
+  #       - Order
+  #       - ReserveTrade
+  #       - Token
+  #     abis:
+  #       - name: OrderbookReserve
+  #         file: ./abis/OrderbookReserve.json
+  #     eventHandlers:
+  #       - event: NewLimitOrder(indexed address,uint32,bool,uint128,uint128,bool)
+  #         handler: handleNewLimitOrder
+  #       - event: OrderbookReserveTrade(address,address,uint256,uint256)
+  #         handler: handleOrderbookTrade
+  #       - event: PartialOrderTaken(address,uint32,bool,bool)
+  #         handler: handlePartialOrderTaken
+  #       - event: FullOrderTaken(address,uint32,bool)
+  #         handler: handleFullOrderTaken
+  #       - event: OrderUpdated(indexed address,bool,uint256,uint128,uint128,bool)
+  #         handler: handleOrderUpdated
+  #       - event: OrderCanceled(indexed address,bool,uint32,uint128,uint256)
+  #         handler: handleOrderCanceled
+  #       - event: TokenDeposited(indexed address,uint256)
+  #         handler: handleTokenDeposited
+  #       - event: EtherDeposited(indexed address,uint256)
+  #         handler: handleEtherDeposited
   - kind: ethereum/contract
     name: KyberNetwork
     network: mainnet

@@ -15,8 +15,11 @@ import {
   TradingPair,
   User
 } from "../generated/schema";
-import { KyberNetwork, KyberReserve } from "../generated/templates";
-import { getIdForExecuteTrade, getOrCreateUser } from "./utils/helpers";
+import {
+  KyberNetwork,
+  MergedKyberReserve as KyberReserve
+} from "../generated/templates";
+import { getIdForTradeExecute, getOrCreateUser } from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS } from "./utils/constants";
 
 export function handleKyberNetworkSet(event: KyberNetworkSet): void {
@@ -44,12 +47,12 @@ export function handleKyberNetworkSet(event: KyberNetworkSet): void {
 }
 
 export function handleExecuteTradeProxy(event: ExecuteTrade): void {
-  let id = getIdForExecuteTrade(event);
+  let id = getIdForTradeExecute(event);
   let trade = ProxyTrade.load(id);
   if (trade == null) {
     trade = new ProxyTrade(id);
   }
-  let user = getOrCreateUser(event.params.trader)
+  let user = getOrCreateUser(event.params.trader);
   trade.trader = user.id;
   trade.src = event.params.src.toHexString();
   trade.dest = event.params.dest.toHexString();

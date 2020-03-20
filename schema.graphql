@@ -1,3 +1,7 @@
+enum ReserveType {
+  KYBER_RESERVE, ORDERBOOK_RESERVE
+}
+
 type ProxyTrade @entity {
   "This object is a summary of one or more trades handled through reserves."
   id: ID!
@@ -23,64 +27,43 @@ type User @entity {
   trades: [ProxyTrade!] @derivedFrom(field: "trader")
 }
 
-interface KyberReserve {
+type Reserve @entity {
   "Ethereum address"
   id: ID!
 
-  "Denotes if the Reserve is either permissioned or permissionless"
+  "Type of said reserve. It will be null until it can be corraborated by a trade or any unique transaction"
+  type: String
+
+  "Depicts whether the reserve was added permissionlessly"
   isPermissionless: Boolean!
 
-  "Denotes whether the Reserve has been removed or not"
+  "Depicts if the reserve was removed"
   isRemoved: Boolean!
 
-  "Denotes whether the Reserve is enabled for trading or not"
+  "Depicts if the reserve is enabled for trading"
   isTradeEnabled: Boolean!
 
-  "Network where this Reserve is registered"
+  "Network on which this reserve is added"
   network: Network!
 
-  createdAtBlockTimestamp: BigInt!
-
-  createdAtBlockNumber: BigInt!
-
-  createdAtLogIndex: BigInt!
-
-  createdAtTransactionHash: String!
-}
-
-type Reserve implements KyberReserve @entity {
-  "Ethereum address"
-  id: ID!
-  isPermissionless: Boolean!
-  isRemoved: Boolean!
-  isTradeEnabled: Boolean!
-  network: Network!
   "Trades through this reserve"
   trades: [ReserveTrade!]! @derivedFrom(field: "reserve")
+
   "Exchange rate contract (if applicable)"
   rateContract: String
+
   "Sanity rate contract (if applicable)"
   sanityContract: String
+
   "Reserve balances"
   tokenBalances: [ReserveTokenBalance!] @derivedFrom(field: "reserve")
+
+  "Orders for this reserve. Only ORDERBOOK_RESERVE will have orders."
+  orders: [Order!]! @derivedFrom(field: "reserve")
+
   "Reserve trading pairs"
   tradingPairs: [TradingPair!]! @derivedFrom(field: "reserve")
-  createdAtBlockTimestamp: BigInt!
-  createdAtBlockNumber: BigInt!
-  createdAtLogIndex: BigInt!
-  createdAtTransactionHash: String!
-}
 
-type OrderbookReserve implements KyberReserve @entity {
-  "Ethereum address"
-  id: ID!
-  isPermissionless: Boolean!
-  isRemoved: Boolean!
-  isTradeEnabled: Boolean!
-  network: Network!
-  orders: [Order!]! @derivedFrom(field: "reserve")
-  "Trades through this reserve"
-  trades: [OrderbookTrade!]! @derivedFrom(field: "reserve")
   createdAtBlockTimestamp: BigInt!
   createdAtBlockNumber: BigInt!
   createdAtLogIndex: BigInt!
@@ -91,7 +74,7 @@ type Order @entity {
   id: ID!
   isCancelled: Boolean!
   isRemoved: Boolean!
-  reserve: OrderbookReserve!
+  reserve: Reserve!
   srcAmount: BigInt
   destAmount: BigInt
   isEthToToken: Boolean
@@ -109,7 +92,7 @@ type Network @entity {
   isCurrentNetwork: Boolean!
   isEnabled: Boolean!
   "Reserves on this network"
-  reserves: [KyberReserve!]! @derivedFrom(field: "network")
+  reserves: [Reserve!]! @derivedFrom(field: "network")
 }
 
 type ReserveTrade @entity {
@@ -130,24 +113,6 @@ type ReserveTrade @entity {
   createdAtTransactionHash: String!
 }
 
-type OrderbookTrade @entity {
-  "This object is a single trade handled by a specific reserve - the result of which is also counted in ProxyTrade."
-  id: ID!
-  "From token address"
-  src: String!
-  "To token address"
-  dest: String!
-  "From token amount  (wei)"
-  srcAmount: BigInt!
-  "To token amount (wei)"
-  destAmount: BigInt!
-  reserve: OrderbookReserve!
-  createdAtBlockTimestamp: BigInt!
-  createdAtBlockNumber: BigInt!
-  createdAtLogIndex: BigInt!
-  createdAtTransactionHash: String!
-}
-
 type TradingPair @entity {
   id: ID!
   reserve: Reserve!
@@ -159,8 +124,19 @@ type TradingPair @entity {
 }
 
 type Token @entity {
-  "Ethereum address"
   id: ID!
+
+  "Blockchain address of the ERC20token"
+  address: Bytes
+
+  "String which represents the name of said token"
+  name: String!
+
+  "Short string representing the symbol used for said token"
+  symbol: String!
+
+  decimals: Int!
+
   "Reserve balances of this token"
   reserveBalances: [ReserveTokenBalance!] @derivedFrom(field: "token")
 }

@@ -7,7 +7,9 @@ import {
   ProxyTrade,
   ReserveTrade,
   TradingPair,
-  User
+  User,
+  ReserveTokenBalance,
+  Order
 } from "../generated/schema";
 import {
   DepositToken,
@@ -16,11 +18,30 @@ import {
   TokenWithdraw,
   TradeEnabled,
   TradeExecute,
-  WithdrawFunds
-} from "../generated/templates/KyberReserve/KyberReserve";
-import { getIdForTradeExecute, getOrCrateToken } from "./utils/helpers";
-import { ZERO_ADDRESS, ETH_ADDRESS } from "./utils/constants";
+  WithdrawFunds,
+  TokenDeposited,
+  EtherDeposited,
+  NewLimitOrder,
+  OrderUpdated,
+  OrderCanceled,
+  FullOrderTaken,
+  PartialOrderTaken,
+  OrderbookReserveTrade
+} from "../generated/templates/MergedKyberReserve/MergedKyberReserve";
+import {
+  getIdForTradeExecute,
+  getOrCrateToken,
+  getOrCreateOrder,
+  getIdForTradeExecute
+} from "./utils/helpers";
+import {
+  ZERO_ADDRESS,
+  ETH_ADDRESS,
+  ORDERBOOK_RESERVE,
+  KYBER_RESERVE
+} from "./utils/constants";
 
+// Reserves
 export function handleDepositToken(event: DepositToken): void {
   let id = event.address
     .toHexString()
@@ -28,7 +49,6 @@ export function handleDepositToken(event: DepositToken): void {
     .concat(event.params.token.toHexString());
   let reserveTokenBalance = ReserveTokenBalance.load(id);
   if (reserveTokenBalance == null) {
-    log.debug("handleDepositToken-{}", [id]);
     reserveTokenBalance = new ReserveTokenBalance(id);
     reserveTokenBalance.amount = BigInt.fromI32(0);
     reserveTokenBalance.reserve = event.address.toHexString();
@@ -174,27 +194,111 @@ export function handleSetContractAddresses(event: SetContractAddresses): void {
     ]);
     return;
   }
-  // if (id == "0x63825c174ab367968ec60f061753d3bbd36a0d8f") {
-  //   // Manually handling for reserve 0x63825c174ab367968ec60f061753d3bbd36a0d8f
-  //   log.debug("Manually creating reserve 0x63825c174ab367968ec60f061753d3bbd36a0d8f.", [])
-  //   KyberReserve.create(Address.fromString('0x63825c174ab367968ec60f061753d3bbd36a0d8f'));
-  //   reserve = new Reserve(id)
-  //   reserve.isPermissionless = false
-  //   reserve.isRemoved = false
-  //   reserve.isTradeEnabled = true
-  //   reserve.createdAtBlockNumber = event.block.number
-  //   reserve.createdAtLogIndex = event.logIndex
-  //   reserve.createdAtBlockTimestamp = event.block.timestamp
-  //   reserve.createdAtTransactionHash = event.transaction.hash.toHexString()
-  //   KyberReserve.create(event.address)
-  // }
-  // else {
-  //   log.error("Could not load reserve with handleSetContractAddresses. {}", [id])
-  //   return
-  // }
-  // }
   reserve.network = event.params.network.toHexString();
   reserve.rateContract = event.params.rate.toHexString();
   reserve.sanityContract = event.params.sanity.toHexString();
+  reserve.type = KYBER_RESERVE;
   reserve.save();
+}
+
+// Orderbooks
+
+export function handleNewLimitOrder(event: NewLimitOrder): void {
+  let orderId = event.address
+    .toHexString()
+    .concat("-")
+    .concat(event.params.orderId.toString());
+  let order = getOrCreateOrder(orderId, event.address.toHexString());
+  order.creator = event.params.maker;
+  order.srcAmount = event.params.srcAmount;
+  order.destAmount = event.params.dstAmount;
+  order.isEthToToken = event.params.isEthToToken;
+  order.createdAtBlockTimestamp = event.block.timestamp;
+  order.createdAtBlockNumber = event.block.number;
+  order.createdAtLogIndex = event.logIndex;
+  order.createdAtTransactionHash = event.transaction.hash.toHexString();
+  order.save();
+}
+
+export function handleOrderbookTrade(event: OrderbookReserveTrade): void {
+  let id = getIdForTradeExecute(event);
+  let trade = ReserveTrade.load(id);
+  if (trade == null) {
+    trade = new ReserveTrade(id);
+  }
+  let reserve = Reserve.load(event.address.toHexString());
+  if (reserve == null) {
+    log.warning("Reserve is null for address: {}", [
+      event.address.toHexString()
+    ]);
+  }
+
+  reserve.type = ORDERBOOK_RESERVE;
+  reserve.save();
+
+  trade.src = event.params.srcToken.toHexString();
+  trade.dest = event.params.dstToken.toHexString();
+  trade.srcAmount = event.params.srcAmount;
+  trade.destAmount = event.params.dstAmount;
+  trade.reserve = event.address.toHexString();
+  trade.createdAtBlockTimestamp = event.block.timestamp;
+  trade.createdAtBlockNumber = event.block.number;
+  trade.createdAtLogIndex = event.logIndex;
+  trade.createdAtTransactionHash = event.transaction.hash.toHexString();
+  trade.save();
+}
+
+export function handlePartialOrderTaken(event: PartialOrderTaken): void {
+  let orderId = event.address
+    .toHexString()
+    .concat("-")
+    .concat(event.params.orderId.toString());
+  let order = getOrCreateOrder(orderId, event.address.toHexString());
+
+  order.isRemoved = event.params.isRemoved;
+  order.save();
+}
+
+export function handleFullOrderTaken(event: FullOrderTaken): void {
+  let orderId = event.address
+    .toHexString()
+    .concat("-")
+    .concat(event.params.orderId.toString());
+  let order = getOrCreateOrder(orderId, event.address.toHexString());
+
+  order.isRemoved = true;
+  order.save();
+}
+
+export function handleOrderUpdated(event: OrderUpdated): void {
+  let orderId = event.address
+    .toHexString()
+    .concat("-")
+    .concat(event.params.orderId.toString());
+  let order = getOrCreateOrder(orderId, event.address.toHexString());
+
+  order.creator = event.params.maker;
+  order.srcAmount = event.params.srcAmount;
+  order.destAmount = event.params.dstAmount;
+  order.isEthToToken = event.params.isEthToToken;
+  order.save();
+}
+
+export function handleOrderCanceled(event: OrderCanceled): void {
+  let orderId = event.address
+    .toHexString()
+    .concat("-")
+    .concat(event.params.orderId.toString());
+  let order = getOrCreateOrder(orderId, event.address.toHexString());
+
+  order.isCancelled = true;
+  order.save();
+}
+
+export function handleTokenDeposited(event: TokenDeposited): void {
+  log.warning("TokenDeposited Orderbook", []);
+}
+
+export function handleEtherDeposited(event: EtherDeposited): void {
+  log.warning("EtherDeposited Orderbook", []);
 }
