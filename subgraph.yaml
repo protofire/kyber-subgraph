@@ -26,16 +26,16 @@ dataSources:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        # - event: ExecuteTrade(indexed address,address,address,uint256,uint256)
-        #   handler: handleExecuteTradeProxy
-  # - AdminClaimed(address,address)
-  # - AlerterAdded(address,bool)
-  # - EtherWithdraw(uint256,address)
         - event: KyberNetworkSet(address,address)
           handler: handleKyberNetworkSet
-  # - OperatorAdded(address,bool)
-  # - TokenWithdraw(address,uint256,address)
-  # - TransferAdminPending(address)
+        # - event: ExecuteTrade(indexed address,address,address,uint256,uint256)
+        #   handler: handleExecuteTradeProxy
+          # - AdminClaimed(address,address)
+          # - AlerterAdded(address,bool)
+          # - EtherWithdraw(uint256,address)
+          # - OperatorAdded(address,bool)
+          # - TokenWithdraw(address,uint256,address)
+          # - TransferAdminPending(address)
   - kind: ethereum/contract
     name: KyberNetwork
     network: mainnet
@@ -58,6 +58,8 @@ dataSources:
       abis:
         - name: KyberNetwork
           file: ./abis/KyberNetwork.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: AddReserveToNetwork(indexed address,bool,bool) # Current version # Event AddReserveToNetwork
           handler: handleAddReserveToNetwork
@@ -69,23 +71,23 @@ dataSources:
           handler: handleListReservePairs
         - event: ListReservePairs(address,address,address,bool) # Older version # Event ListReservePairs1
           handler: handleListReservePairsV1
-  # - AdminClaimed(address,address)
-  # - AlerterAdded(address,bool)
-  # - EtherReceival(indexed address,uint256)
-  # - EtherWithdraw(uint256,address)
-  # - ExpectedRateContractSet(address,address)
-  # - FeeBurnerContractSet(address,address)
         - event: KyberNetworkSetEnable(bool)
           handler: handleKyberNetworkSetEnable
-  # - KyberNetwrokParamsSet(uint256,uint256)
-        # - event: KyberProxySet(address,address)
+        - event: ExecuteTrade(indexed address,address,address,uint256,uint256)
+          handler: handleKyberTradeV1
+          # - KyberNetwrokParamsSet(uint256,uint256)
+          # - event: KyberProxySet(address,address)
           # handler: handleKyberProxySet
-        - event: KyberTrade(indexed address,address,address,uint256,uint256,address,uint256,address,address,bytes)
-          handler: handleKyberTrade
-  # - OperatorAdded(address,bool)
-  # - TokenWithdraw(address,uint256,address)
-  # - TransferAdminPending(address)
-  # - WhiteListContractSet(address,address)
+          # - AdminClaimed(address,address)
+          # - AlerterAdded(address,bool)
+          # - EtherReceival(indexed address,uint256)
+          # - EtherWithdraw(uint256,address)
+          # - ExpectedRateContractSet(address,address)
+          # - FeeBurnerContractSet(address,address)
+          # - OperatorAdded(address,bool)
+          # - TokenWithdraw(address,uint256,address)
+          # - TransferAdminPending(address)
+          # - WhiteListContractSet(address,address)
 templates:
   # These data sources templates exist to support the different flags that a token could specify- kind: ethereum/contract
   - kind: ethereum/contract
@@ -107,6 +109,8 @@ templates:
       abis:
         - name: MergedKyberReserve
           file: ./abis/MergedKyberReserve.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: DepositToken(address,uint256)
           handler: handleDepositToken
@@ -116,15 +120,10 @@ templates:
           handler: handleTradeExecuteReserve
         - event: SetContractAddresses(address,address,address)
           handler: handleSetContractAddresses
-  # - AdminClaimed(address,address)
-  # - AlerterAdded(address,bool)
         - event: EtherWithdraw(uint256,address)
           handler: handleEtherWithdraw
-  # - OperatorAdded(address,bool)
         - event: TokenWithdraw(address,uint256,address)
           handler: handleTokenWithdraw
-  # - TransferAdminPending(address)
-  # - WithdrawAddressApproved(address,address,bool)
         - event: WithdrawFunds(address,uint256,address)
           handler: handleWithdrawFunds
         - event: NewLimitOrder(indexed address,uint32,bool,uint128,uint128,bool)
@@ -139,45 +138,15 @@ templates:
           handler: handleOrderUpdated
         - event: OrderCanceled(indexed address,bool,uint32,uint128,uint256)
           handler: handleOrderCanceled
-        # - event: TokenDeposited(indexed address,uint256)
-        #   handler: handleTokenDeposited
-        # - event: EtherDeposited(indexed address,uint256)
-        #   handler: handleEtherDeposited
-  # - kind: ethereum/contract
-  #   name: OrderbookReserve
-  #   network: mainnet
-  #   source:
-  #     abi: OrderbookReserve
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.3
-  #     language: wasm/assemblyscript
-  #     file: ./src/orderbookReserve.ts
-  #     entities:
-  #       - OrderbookReserve
-  #       - Order
-  #       - ReserveTrade
-  #       - Token
-  #     abis:
-  #       - name: OrderbookReserve
-  #         file: ./abis/OrderbookReserve.json
-  #     eventHandlers:
-  #       - event: NewLimitOrder(indexed address,uint32,bool,uint128,uint128,bool)
-  #         handler: handleNewLimitOrder
-  #       - event: OrderbookReserveTrade(address,address,uint256,uint256)
-  #         handler: handleOrderbookTrade
-  #       - event: PartialOrderTaken(address,uint32,bool,bool)
-  #         handler: handlePartialOrderTaken
-  #       - event: FullOrderTaken(address,uint32,bool)
-  #         handler: handleFullOrderTaken
-  #       - event: OrderUpdated(indexed address,bool,uint256,uint128,uint128,bool)
-  #         handler: handleOrderUpdated
-  #       - event: OrderCanceled(indexed address,bool,uint32,uint128,uint256)
-  #         handler: handleOrderCanceled
-  #       - event: TokenDeposited(indexed address,uint256)
-  #         handler: handleTokenDeposited
-  #       - event: EtherDeposited(indexed address,uint256)
-  #         handler: handleEtherDeposited
+          # - AdminClaimed(address,address)
+          # - AlerterAdded(address,bool)
+          # - OperatorAdded(address,bool)
+          # - TransferAdminPending(address)
+          # - WithdrawAddressApproved(address,address,bool)
+          # - event: TokenDeposited(indexed address,uint256)
+          #   handler: handleTokenDeposited
+          # - event: EtherDeposited(indexed address,uint256)
+          #   handler: handleEtherDeposited
   - kind: ethereum/contract
     name: KyberNetwork
     network: mainnet
@@ -196,6 +165,8 @@ templates:
       abis:
         - name: KyberNetwork
           file: ./abis/KyberNetwork.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: AddReserveToNetwork(indexed address,bool,bool) # Current version # Event AddReserveToNetwork
           handler: handleAddReserveToNetwork
@@ -207,20 +178,22 @@ templates:
           handler: handleListReservePairs
         - event: ListReservePairs(address,address,address,bool) # Older version # Event ListReservePairs1
           handler: handleListReservePairsV1
-  # - AdminClaimed(address,address)
-  # - AlerterAdded(address,bool)
-  # - EtherReceival(indexed address,uint256)
-  # - EtherWithdraw(uint256,address)
-  # - ExpectedRateContractSet(address,address)
-  # - FeeBurnerContractSet(address,address)
         - event: KyberNetworkSetEnable(bool)
           handler: handleKyberNetworkSetEnable
-  # - KyberNetwrokParamsSet(uint256,uint256)
-        # - event: KyberProxySet(address,address)
-          # handler: handleKyberProxySet
+        - event: KyberTrade(address,address,uint256,address,address,uint256)
+          handler: handleKyberTradeV2
         - event: KyberTrade(indexed address,address,address,uint256,uint256,address,uint256,address,address,bytes)
           handler: handleKyberTrade
-  # - OperatorAdded(address,bool)
-  # - TokenWithdraw(address,uint256,address)
-  # - TransferAdminPending(address)
-  # - WhiteListContractSet(address,address)
+          # - KyberNetwrokParamsSet(uint256,uint256)
+          # - AdminClaimed(address,address)
+          # - AlerterAdded(address,bool)
+          # - EtherReceival(indexed address,uint256)
+          # - EtherWithdraw(uint256,address)
+          # - ExpectedRateContractSet(address,address)
+          # - FeeBurnerContractSet(address,address)
+          # - event: KyberProxySet(address,address)
+          # handler: handleKyberProxySet
+          # - OperatorAdded(address,bool)
+          # - TokenWithdraw(address,uint256,address)
+          # - TransferAdminPending(address)
+          # - WhiteListContractSet(address,address)

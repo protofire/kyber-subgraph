@@ -39,6 +39,7 @@ import {
   ORDERBOOK_RESERVE,
   KYBER_RESERVE
 } from "./utils/constants";
+import { toDecimal } from "./utils/decimals";
 
 // Reserves
 export function handleDepositToken(event: DepositToken): void {
@@ -135,11 +136,18 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
     reserve.save();
   }
 
-  // trade.trader = getUser(event.params.)
+  let srcToken = getOrCreateToken(event.params.src);
+  let destToken = getOrCreateToken(event.params.destToken);
+
   trade.src = event.params.src.toHexString();
   trade.dest = event.params.destToken.toHexString();
-  trade.srcAmount = event.params.srcAmount;
-  trade.destAmount = event.params.destAmount;
+  trade.rawSrcAmount = event.params.srcAmount;
+  trade.rawDestAmount = event.params.destAmount;
+  trade.actualSrcAmount = toDecimal(event.params.srcAmount, srcToken.decimals);
+  trade.actualDestAmount = toDecimal(
+    event.params.destAmount,
+    destToken.decimals
+  );
   trade.reserve = event.address.toHexString();
   trade.createdAtBlockTimestamp = event.block.timestamp;
   trade.createdAtBlockNumber = event.block.number;
@@ -204,6 +212,7 @@ export function handleSetContractAddresses(event: SetContractAddresses): void {
     log.error("Could not load reserve with handleSetContractAddresses. {}", [
       id
     ]);
+
     return;
   }
   reserve.network = event.params.network.toHexString();
@@ -261,14 +270,22 @@ export function handleOrderbookTrade(event: OrderbookReserveTrade): void {
   }
 
   if (reserve.type == null) {
-    reserve.type = KYBER_RESERVE;
+    reserve.type = ORDERBOOK_RESERVE;
     reserve.save();
   }
 
+  let srcToken = getOrCreateToken(event.params.srcToken);
+  let destToken = getOrCreateToken(event.params.dstToken);
+
   trade.src = event.params.srcToken.toHexString();
   trade.dest = event.params.dstToken.toHexString();
-  trade.srcAmount = event.params.srcAmount;
-  trade.destAmount = event.params.dstAmount;
+  trade.rawSrcAmount = event.params.srcAmount;
+  trade.rawDestAmount = event.params.dstAmount;
+  trade.actualSrcAmount = toDecimal(event.params.srcAmount, srcToken.decimals);
+  trade.actualDestAmount = toDecimal(
+    event.params.dstAmount,
+    destToken.decimals
+  );
   trade.reserve = event.address.toHexString();
   trade.createdAtBlockTimestamp = event.block.timestamp;
   trade.createdAtBlockNumber = event.block.number;

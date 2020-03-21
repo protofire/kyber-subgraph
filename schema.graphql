@@ -27,13 +27,13 @@ type FullTrade @entity {
   actualDestAmount: BigDecimal!
 
   "Reserve used to trade source token to ETH"
-  reserveSrcToEth: Reserve!
+  reserveSrcToEth: Reserve
 
   "Reserve used to trade ETH to destination token"
-  reserveEthToDest: Reserve!
+  reserveEthToDest: Reserve
 
   "Value of the trade represented in wei (ETH)"
-  ethWeiValue: BigInt!
+  ethWeiValue: BigInt
 
   createdAtBlockTimestamp: BigInt!
   createdAtBlockNumber: BigInt!
@@ -97,13 +97,27 @@ type Reserve @entity {
 
 type Order @entity {
   id: ID!
+
+  "Whether this order was cancelled by the creator or not"
   isCancelled: Boolean!
+
+  "Whether this order is removed because it was already completed"
   isRemoved: Boolean!
+
   reserve: Reserve!
+
+  "Amount of source tokens offered"
   srcAmount: BigInt
+
+  "Amount of destination tokens expected"
   destAmount: BigInt
+
+  "Boolean to specify is whether this order expects ETH or a Token"
   isEthToToken: Boolean
+
+  "User that created this order"
   creator: User!
+
   createdAtBlockTimestamp: BigInt!
   createdAtBlockNumber: BigInt!
   createdAtLogIndex: BigInt!
@@ -113,9 +127,10 @@ type Order @entity {
 type Network @entity {
   "Ethereum address"
   id: ID!
-  proxy: String!
+  proxy: String
   isCurrentNetwork: Boolean!
   isEnabled: Boolean!
+
   "Reserves on this network"
   reserves: [Reserve!]! @derivedFrom(field: "network")
 }
@@ -124,17 +139,23 @@ type ReserveTrade @entity {
   "This entity represents a single reserve trade. Multiple of these trades will be used to complete a FullTrade"
   id: ID!
 
-  "From token address"
-  src: String!
+  "Source token"
+  src: Token!
 
-  "To token address"
-  dest: String!
+  "Destination token"
+  dest: Token!
 
-  "From token amount  (wei)"
-  srcAmount: BigInt!
+  "Source token amount in wei"
+  rawSrcAmount: BigInt!
 
-  "To token amount (wei)"
-  destAmount: BigInt!
+  "Destination token amount in wei"
+  rawDestAmount: BigInt!
+
+  "Source token amount converted to base units"
+  actualSrcAmount: BigDecimal!
+
+  "Destination token amount converted to base units"
+  actualDestAmount: BigDecimal!
 
   reserve: Reserve!
   createdAtBlockTimestamp: BigInt!
@@ -147,11 +168,11 @@ type TradingPair @entity {
   id: ID!
   reserve: Reserve!
 
-  "From token address"
-  src: String!
+  "Source token"
+  src: Token!
 
-  "To token address"
-  dest: String!
+  "Destination token"
+  dest: Token!
 
   isTradingPairEnabled: Boolean!
 }

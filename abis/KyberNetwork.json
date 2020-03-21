@@ -723,5 +723,74 @@
     ],
     "name": "OperatorAdded",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "src",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "dest",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "actualSrcAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "actualDestAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ExecuteTrade",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "srcAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "srcToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "srcAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "destAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "destToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "destAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "KyberTrade",
+    "type": "event"
   }
 ]
