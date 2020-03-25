@@ -42,7 +42,7 @@ type FullTrade @entity {
 }
 
 type User @entity {
-  "Ethereum address"
+  "This entity represents a user address which has participated either by trading or by placing orders"
   id: ID!
 
   "Trades by user"
@@ -53,7 +53,7 @@ type User @entity {
 }
 
 type Reserve @entity {
-  "Ethereum address"
+  "This entity represents a Reserve. It can be either a normal reserve or an orderbook reserve."
   id: ID!
 
   "Type of said reserve. It will be null until it can be corraborated by a trade or any unique transaction"
@@ -96,6 +96,7 @@ type Reserve @entity {
 }
 
 type Order @entity {
+  "This entity represents a placed order on an orderbook reserve"
   id: ID!
 
   "Whether this order was cancelled by the creator or not"
@@ -125,7 +126,7 @@ type Order @entity {
 }
 
 type Network @entity {
-  "Ethereum address"
+  "This entity represents a KyberNetwork contract which holds all it's corresponding reserves and the proxy contract address if it is proxied"
   id: ID!
   proxy: String
   isCurrentNetwork: Boolean!
@@ -165,6 +166,7 @@ type ReserveTrade @entity {
 }
 
 type TradingPair @entity {
+  "This entity represents a trading pair listed for a specific reserve and whether or not the pair is enabled"
   id: ID!
   reserve: Reserve!
 
@@ -178,6 +180,7 @@ type TradingPair @entity {
 }
 
 type Token @entity {
+  "This entity represents an ERC20 token"
   id: ID!
 
   "Blockchain address of the ERC20token"

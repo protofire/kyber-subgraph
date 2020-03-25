@@ -20,7 +20,8 @@ import {
   getOrCreateFullTrade,
   getIdForTradeExecute,
   getOrCreateUser,
-  checkAndInstantiateInitialNetwork
+  checkAndInstantiateInitialNetwork,
+  getOrCreateReserve
 } from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS, INITIAL_NETWORK } from "./utils/constants";
 import { toDecimal } from "./utils/decimals";
@@ -42,21 +43,18 @@ export function handleAddReserveToNetwork(event: AddReserveToNetwork): void {
   if (event.params.add == false) return;
 
   let id = event.params.reserve.toHexString();
-  let reserve = Reserve.load(id);
-  if (reserve == null) {
-    reserve = new Reserve(id);
-    reserve.network = event.address.toHexString();
-    reserve.isPermissionless = event.params.isPermissionless;
-    reserve.isRemoved = false;
-    reserve.isTradeEnabled = true;
-    reserve.createdAtBlockNumber = event.block.number;
-    reserve.createdAtLogIndex = event.logIndex;
-    reserve.createdAtBlockTimestamp = event.block.timestamp;
-    reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
-    reserve.save();
+  let reserve = getOrCreateReserve(id);
+  reserve.network = event.address.toHexString();
+  reserve.isPermissionless = event.params.isPermissionless;
+  reserve.isRemoved = false;
+  reserve.isTradeEnabled = true;
+  reserve.createdAtBlockNumber = event.block.number;
+  reserve.createdAtLogIndex = event.logIndex;
+  reserve.createdAtBlockTimestamp = event.block.timestamp;
+  reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
+  reserve.save();
 
-    KyberReserve.create(event.params.reserve);
-  }
+  KyberReserve.create(event.params.reserve);
 }
 
 export function handleAddReserveToNetworkV1(event: AddReserveToNetwork1): void {
@@ -68,21 +66,18 @@ export function handleAddReserveToNetworkV1(event: AddReserveToNetwork1): void {
   }
 
   let id = event.params.reserve.toHexString();
-  let reserve = Reserve.load(id);
-  if (reserve == null) {
-    reserve = new Reserve(id);
-    reserve.network = event.address.toHexString();
-    reserve.isPermissionless = false;
-    reserve.isRemoved = false;
-    reserve.isTradeEnabled = true;
-    reserve.createdAtBlockNumber = event.block.number;
-    reserve.createdAtLogIndex = event.logIndex;
-    reserve.createdAtBlockTimestamp = event.block.timestamp;
-    reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
-    reserve.save();
+  let reserve = getOrCreateReserve(id);
+  reserve.network = event.address.toHexString();
+  reserve.isPermissionless = false;
+  reserve.isRemoved = false;
+  reserve.isTradeEnabled = true;
+  reserve.createdAtBlockNumber = event.block.number;
+  reserve.createdAtLogIndex = event.logIndex;
+  reserve.createdAtBlockTimestamp = event.block.timestamp;
+  reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
+  reserve.save();
 
-    KyberReserve.create(event.params.reserve);
-  }
+  KyberReserve.create(event.params.reserve);
 }
 
 export function handleRemoveReserveFromNetwork(
@@ -159,11 +154,6 @@ export function handleListReservePairsV1(event: ListReservePairs1): void {
 
 export function handleKyberTradeV1(event: KyberTradeV1): void {
   let id = getIdForTradeExecute(event);
-  log.warning("handleKyberTradeV1, ID: {}, src: {}, dest: {}", [
-    id,
-    event.params.src.toHexString(),
-    event.params.dest.toHexString()
-  ]);
   let trade = getOrCreateFullTrade(id);
   let user = getOrCreateUser(event.params.sender);
   let srcToken = getOrCreateToken(event.params.src);
@@ -192,7 +182,6 @@ export function handleKyberTradeV1(event: KyberTradeV1): void {
 
 export function handleKyberTradeV2(event: KyberTradeV2): void {
   let id = getIdForTradeExecute(event);
-  log.warning("handleKyberTradeV2, {}", [id]);
   let trade = getOrCreateFullTrade(id);
   let user = getOrCreateUser(event.params.srcAddress);
   let srcToken = getOrCreateToken(event.params.srcToken);
@@ -218,7 +207,6 @@ export function handleKyberTradeV2(event: KyberTradeV2): void {
 
 export function handleKyberTrade(event: KyberTrade): void {
   let id = getIdForTradeExecute(event);
-  log.warning("handleKyberTrade, {}", [id]);
   let trade = getOrCreateFullTrade(id);
   let user = getOrCreateUser(event.params.trader);
   let srcToken = getOrCreateToken(event.params.src);

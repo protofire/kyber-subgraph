@@ -18,13 +18,16 @@ import {
   KyberNetwork,
   MergedKyberReserve as KyberReserve
 } from "../generated/templates";
-import { getIdForTradeExecute, getOrCreateUser } from "./utils/helpers";
+import {
+  getIdForTradeExecute,
+  getOrCreateUser,
+  getOrCreateNetwork
+} from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS, INITIAL_NETWORK } from "./utils/constants";
 
 export function handleKyberNetworkSet(event: KyberNetworkSet): void {
   let new_id = event.params.newNetworkContract.toHexString();
-  log.warning("handleKyberNetworkSet, {}", [new_id]);
-  let new_network = new Network(new_id);
+  let new_network = getOrCreateNetwork(new_id);
   new_network.proxy = event.address.toHexString();
   new_network.isCurrentNetwork = true;
   new_network.isEnabled = false;
@@ -34,7 +37,7 @@ export function handleKyberNetworkSet(event: KyberNetworkSet): void {
 
   let old_id = event.params.oldNetworkContract.toHexString();
 
-  let old_network = Network.load(old_id);
+  let old_network = getOrCreateNetwork(old_id, false);
   if (old_network == null) {
     log.warning(
       "Old network not already initialized, assuming v1 network with address: {}, actual address received: {}",
@@ -42,13 +45,10 @@ export function handleKyberNetworkSet(event: KyberNetworkSet): void {
     );
 
     if (old_id == ZERO_ADDRESS || old_id == INITIAL_NETWORK) {
-      let initial_network = Network.load(INITIAL_NETWORK);
-      if (initial_network == null) {
-        initial_network = new Network(INITIAL_NETWORK);
-        initial_network.isCurrentNetwork = false;
-        initial_network.isEnabled = false;
-        initial_network.save();
-      }
+      let initial_network = getOrCreateNetwork(INITIAL_NETWORK);
+      initial_network.isCurrentNetwork = false;
+      initial_network.isEnabled = false;
+      initial_network.save();
     }
 
     return;
@@ -56,33 +56,3 @@ export function handleKyberNetworkSet(event: KyberNetworkSet): void {
   old_network.isCurrentNetwork = false;
   old_network.save();
 }
-//
-// export function handleExecuteTradeProxy(event: ExecuteTrade): void {
-//   let id = getIdForTradeExecute(event);
-//   let trade = ProxyTrade.load(id);
-//   if (trade == null) {
-//     trade = new ProxyTrade(id);
-//   }
-//   let user = getOrCreateUser(event.params.trader);
-//   let srcToken = getOrCreateToken(event.params.src);
-//   let destToken = getOrCreateToken(event.params.dest);
-//
-//   trade.trader = user.id;
-//   trade.src = event.params.src.toHexString();
-//   trade.dest = event.params.dest.toHexString();
-//   trade.rawSrcAmount = event.params.actualSrcAmount;
-//   trade.rawDestAmount = event.params.actualDestAmount;
-//   trade.actualSrcAmount = toDecimal(
-//     event.params.actualSrcAmount,
-//     srcToken.decimals
-//   );
-//   trade.actualDestAmount = toDecimal(
-//     event.params.actualDestAmount,
-//     destToken.decimals
-//   );
-//   trade.createdAtBlockTimestamp = event.block.timestamp;
-//   trade.createdAtBlockNumber = event.block.number;
-//   trade.createdAtLogIndex = event.logIndex;
-//   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
-//   trade.save();
-// }

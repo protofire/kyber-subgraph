@@ -1,4 +1,11 @@
-import { User, Token, Order, FullTrade, Network } from "../../generated/schema";
+import {
+  User,
+  Token,
+  Order,
+  FullTrade,
+  Network,
+  Reserve
+} from "../../generated/schema";
 import { ERC20 } from "../../generated/KyberNetworkProxy/ERC20";
 import { Address, EthereumEvent, log } from "@graphprotocol/graph-ts";
 import { DEFAULT_DECIMALS } from "./decimals";
@@ -108,4 +115,27 @@ export function checkAndInstantiateInitialNetwork(): void {
     network.isEnabled = false;
     network.save();
   }
+}
+
+export function getOrCreateReserve(id: String): Reserve {
+  let reserve = Reserve.load(id);
+
+  if (reserve == null) {
+    reserve = new Reserve(id);
+  }
+
+  return reserve as Reserve;
+}
+
+export function getOrCreateNetwork(
+  id: String,
+  createIfNotFound: boolean = true
+): Network {
+  let network = Network.load(id);
+
+  if (network == null) {
+    network = new Network(id);
+  }
+
+  return network as Network;
 }
