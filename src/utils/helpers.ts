@@ -4,7 +4,9 @@ import {
   Order,
   FullTrade,
   Network,
-  Reserve
+  Reserve,
+  ReserveTrade,
+  TradingPair
 } from "../../generated/schema";
 import { ERC20 } from "../../generated/KyberNetworkProxy/ERC20";
 import { Address, EthereumEvent, log } from "@graphprotocol/graph-ts";
@@ -106,6 +108,16 @@ export function getOrCreateFullTrade(tradeId: String): FullTrade {
   return trade as FullTrade;
 }
 
+export function getOrCreateReserveTrade(tradeId: String): ReserveTrade {
+  let trade = ReserveTrade.load(tradeId);
+
+  if (trade == null) {
+    trade = new ReserveTrade(tradeId);
+  }
+
+  return trade as ReserveTrade;
+}
+
 export function checkAndInstantiateInitialNetwork(): void {
   let network = Network.load(INITIAL_NETWORK);
 
@@ -117,10 +129,13 @@ export function checkAndInstantiateInitialNetwork(): void {
   }
 }
 
-export function getOrCreateReserve(id: String): Reserve {
+export function getOrCreateReserve(
+  id: String,
+  createIfNotFound: boolean = true
+): Reserve {
   let reserve = Reserve.load(id);
 
-  if (reserve == null) {
+  if (reserve == null && createIfNotFound) {
     reserve = new Reserve(id);
   }
 
@@ -133,9 +148,19 @@ export function getOrCreateNetwork(
 ): Network {
   let network = Network.load(id);
 
-  if (network == null) {
+  if (network == null && createIfNotFound) {
     network = new Network(id);
   }
 
   return network as Network;
+}
+
+export function getOrCreateTradingPair(id: String): TradingPair {
+  let tradingPair = TradingPair.load(id);
+
+  if (tradingPair == null) {
+    tradingPair = new TradingPair(id);
+  }
+
+  return tradingPair as TradingPair;
 }

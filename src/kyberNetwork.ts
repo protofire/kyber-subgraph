@@ -10,7 +10,6 @@ import {
   ExecuteTrade as KyberTradeV1,
   KyberTrade1 as KyberTradeV2
 } from "../generated/templates/KyberNetwork/KyberNetwork";
-import { Network, Reserve, TradingPair, FullTrade } from "../generated/schema";
 import {
   KyberNetwork,
   MergedKyberReserve as KyberReserve
@@ -21,7 +20,9 @@ import {
   getIdForTradeExecute,
   getOrCreateUser,
   checkAndInstantiateInitialNetwork,
-  getOrCreateReserve
+  getOrCreateReserve,
+  getOrCreateNetwork,
+  getOrCreateTradingPair
 } from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS, INITIAL_NETWORK } from "./utils/constants";
 import { toDecimal } from "./utils/decimals";
@@ -30,7 +31,7 @@ export function handleKyberNetworkSetEnable(
   event: KyberNetworkSetEnable
 ): void {
   let id = event.address.toHexString();
-  let network = Network.load(id);
+  let network = getOrCreateNetwork(id, false);
   if (network == null) {
     log.error("Could not load network {}", [id]);
   }
@@ -84,7 +85,7 @@ export function handleRemoveReserveFromNetwork(
   event: RemoveReserveFromNetwork
 ): void {
   let id = event.params.reserve.toHexString();
-  let reserve = Reserve.load(id);
+  let reserve = getOrCreateReserve(id, false);
   if (reserve == null) {
     log.warning("Could not load removed reserve. {}", [id]);
     return;
@@ -95,7 +96,7 @@ export function handleRemoveReserveFromNetwork(
 }
 
 export function handleListReservePairs(event: ListReservePairs): void {
-  let reserve = Reserve.load(event.params.reserve.toHexString());
+  let reserve = getOrCreateReserve(event.params.reserve.toHexString(), false);
   if (reserve == null) {
     log.warning("Could not load reserve for trading pair. {}", [
       event.params.reserve.toHexString()
@@ -109,10 +110,7 @@ export function handleListReservePairs(event: ListReservePairs): void {
     .concat(event.params.src.toHexString())
     .concat("-")
     .concat(event.params.dest.toHexString());
-  let tradingPair = TradingPair.load(id);
-  if (tradingPair == null) {
-    tradingPair = new TradingPair(id);
-  }
+  let tradingPair = getOrCreateTradingPair(id);
   tradingPair.reserve = event.params.reserve.toHexString();
   tradingPair.src = event.params.src.toHexString();
   tradingPair.dest = event.params.dest.toHexString();
@@ -124,7 +122,7 @@ export function handleListReservePairs(event: ListReservePairs): void {
 }
 
 export function handleListReservePairsV1(event: ListReservePairs1): void {
-  let reserve = Reserve.load(event.params.reserve.toHexString());
+  let reserve = getOrCreateReserve(event.params.reserve.toHexString(), false);
   if (reserve == null) {
     log.warning("Could not load reserve for trading pair. {}", [
       event.params.reserve.toHexString()
@@ -138,10 +136,7 @@ export function handleListReservePairsV1(event: ListReservePairs1): void {
     .concat(event.params.src.toHexString())
     .concat("-")
     .concat(event.params.dest.toHexString());
-  let tradingPair = TradingPair.load(id);
-  if (tradingPair == null) {
-    tradingPair = new TradingPair(id);
-  }
+  let tradingPair = getOrCreateTradingPair(id);
   tradingPair.reserve = event.params.reserve.toHexString();
   tradingPair.src = event.params.src.toHexString();
   tradingPair.dest = event.params.dest.toHexString();

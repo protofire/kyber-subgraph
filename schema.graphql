@@ -80,9 +80,6 @@ type Reserve @entity {
   "Sanity rate contract (if applicable)"
   sanityContract: String
 
-  "Reserve balances"
-  tokenBalances: [ReserveTokenBalance!] @derivedFrom(field: "reserve")
-
   "Orders for this reserve. Only ORDERBOOK_RESERVE will have orders."
   orders: [Order!] @derivedFrom(field: "reserve")
 
@@ -193,17 +190,4 @@ type Token @entity {
   symbol: String!
 
   decimals: Int!
-
-  "Reserve balances of this token"
-  reserveBalances: [ReserveTokenBalance!]! @derivedFrom(field: "token")
-}
-
-type ReserveTokenBalance @entity {
-  id: ID!
-
-  "Token amount (wei)"
-  amount: BigInt!
-
-  reserve: Reserve!
-  token: Token!
 }

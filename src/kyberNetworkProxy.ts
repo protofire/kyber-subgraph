@@ -6,15 +6,6 @@ import {
   KyberNetworkProxy
 } from "../generated/KyberNetworkProxy/KyberNetworkProxy";
 import {
-  Network,
-  Reserve,
-  ReserveTokenBalance,
-  Token,
-  ReserveTrade,
-  TradingPair,
-  User
-} from "../generated/schema";
-import {
   KyberNetwork,
   MergedKyberReserve as KyberReserve
 } from "../generated/templates";

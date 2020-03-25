@@ -88,20 +88,12 @@ templates:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: DepositToken(address,uint256)
-          handler: handleDepositToken
         - event: TradeEnabled(bool)
           handler: handleTradeEnabled
         - event: TradeExecute(indexed address,address,uint256,address,uint256,address)
           handler: handleTradeExecuteReserve
         - event: SetContractAddresses(address,address,address)
           handler: handleSetContractAddresses
-        - event: EtherWithdraw(uint256,address)
-          handler: handleEtherWithdraw
-        - event: TokenWithdraw(address,uint256,address)
-          handler: handleTokenWithdraw
-        - event: WithdrawFunds(address,uint256,address)
-          handler: handleWithdrawFunds
         - event: NewLimitOrder(indexed address,uint32,bool,uint128,uint128,bool)
           handler: handleNewLimitOrder
         - event: OrderbookReserveTrade(address,address,uint256,uint256)
