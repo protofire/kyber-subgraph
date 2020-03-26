@@ -163,7 +163,7 @@ type ReserveTrade @entity {
 }
 
 type TradingPair @entity {
-  "This entity represents a trading pair listed for a specific reserve and whether or not the pair is enabled"
+  "This entity represents a trading pair listed for a specific reserve, the status of said trading pair and the total amount of tokens traded for this specific reserve"
   id: ID!
   reserve: Reserve!
 
@@ -172,6 +172,18 @@ type TradingPair @entity {
 
   "Destination token"
   dest: Token!
+
+  "Total source tokens received to trade for destination tokens. Expressed in the minimal unit for the token"
+  rawTotalSrcReceived: BigInt!
+
+  "Total destination tokens returned to the user in exchange for the source tokens. Expressed in the minimal unit for the token"
+  rawTotalDestReturned: BigInt!
+
+  "Normalized value of rawTotalSrcReceived so it's expressed in the base unit of the token"
+  actualTotalSrcReceived: BigDecimal!
+
+  "Normalized value of rawTotalDestReturned so it's expressed in the base unit of the token"
+  actualTotalDestReturned: BigDecimal!
 
   isTradingPairEnabled: Boolean!
 }

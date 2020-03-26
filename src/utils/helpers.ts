@@ -11,7 +11,13 @@ import {
 import { ERC20 } from "../../generated/KyberNetworkProxy/ERC20";
 import { Address, EthereumEvent, log } from "@graphprotocol/graph-ts";
 import { DEFAULT_DECIMALS } from "./decimals";
-import { ZERO_ADDRESS, ETH_ADDRESS, INITIAL_NETWORK } from "./constants";
+import {
+  ZERO_ADDRESS,
+  ETH_ADDRESS,
+  INITIAL_NETWORK,
+  BIGINT_ZERO,
+  BIGDECIMAL_ZERO
+} from "./constants";
 
 export function getIdForTradeExecute(event: EthereumEvent): string {
   return event.block.number
@@ -155,12 +161,32 @@ export function getOrCreateNetwork(
   return network as Network;
 }
 
-export function getOrCreateTradingPair(id: String): TradingPair {
+export function getOrCreateTradingPair(
+  id: String,
+  createIfNotFound: boolean = true
+): TradingPair {
   let tradingPair = TradingPair.load(id);
 
-  if (tradingPair == null) {
+  if (tradingPair == null && createIfNotFound) {
     tradingPair = new TradingPair(id);
+    tradingPair.rawTotalSrcReceived = BIGINT_ZERO;
+    tradingPair.rawTotalDestReturned = BIGINT_ZERO;
+    tradingPair.actualTotalSrcReceived = BIGDECIMAL_ZERO;
+    tradingPair.actualTotalDestReturned = BIGDECIMAL_ZERO;
   }
 
   return tradingPair as TradingPair;
+}
+
+export function getTradingPairId(
+  reserveAddress: String,
+  srcAddress: String,
+  destAddress: String
+): String {
+  let id = reserveAddress
+    .concat("-")
+    .concat(srcAddress)
+    .concat("-")
+    .concat(destAddress);
+  return id;
 }

@@ -22,7 +22,8 @@ import {
   checkAndInstantiateInitialNetwork,
   getOrCreateReserve,
   getOrCreateNetwork,
-  getOrCreateTradingPair
+  getOrCreateTradingPair,
+  getTradingPairId
 } from "./utils/helpers";
 import { ZERO_ADDRESS, ETH_ADDRESS, INITIAL_NETWORK } from "./utils/constants";
 import { toDecimal } from "./utils/decimals";
@@ -104,12 +105,11 @@ export function handleListReservePairs(event: ListReservePairs): void {
     // return;
   }
 
-  let id = event.params.reserve
-    .toHexString()
-    .concat("-")
-    .concat(event.params.src.toHexString())
-    .concat("-")
-    .concat(event.params.dest.toHexString());
+  let id = getTradingPairId(
+    event.params.reserve.toHexString(),
+    event.params.src.toHexString(),
+    event.params.dest.toHexString()
+  );
   let tradingPair = getOrCreateTradingPair(id);
   tradingPair.reserve = event.params.reserve.toHexString();
   tradingPair.src = event.params.src.toHexString();
@@ -130,12 +130,11 @@ export function handleListReservePairsV1(event: ListReservePairs1): void {
     // return
   }
 
-  let id = event.params.reserve
-    .toHexString()
-    .concat("-")
-    .concat(event.params.src.toHexString())
-    .concat("-")
-    .concat(event.params.dest.toHexString());
+  let id = getTradingPairId(
+    event.params.reserve.toHexString(),
+    event.params.src.toHexString(),
+    event.params.dest.toHexString()
+  );
   let tradingPair = getOrCreateTradingPair(id);
   tradingPair.reserve = event.params.reserve.toHexString();
   tradingPair.src = event.params.src.toHexString();
