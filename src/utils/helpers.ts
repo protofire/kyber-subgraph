@@ -296,18 +296,15 @@ export function aggregateVolumeTrackingNetworkData(
 ): void {
   let srcNetworkTradeVolumeId = getTradeVolumeId(networkId, srcToken.id);
   let destNetworkTradeVolumeId = getTradeVolumeId(networkId, destToken.id);
-  let srcTotalTradeVolumeId = getTradeVolumeId("TOTAL", srcToken.id);
-  let destTotalTradeVolumeId = getTradeVolumeId("TOTAL", destToken.id);
+
   let srcNetworkTradeVolume = getOrCreateNetworkTradeVolume(
     srcNetworkTradeVolumeId
   );
   let destNetworkTradeVolume = getOrCreateNetworkTradeVolume(
     destNetworkTradeVolumeId
   );
-  let srcTotalTradeVolume = getOrCreateTotalTradeVolume(srcTotalTradeVolumeId);
-  let destTotalTradeVolume = getOrCreateTotalTradeVolume(
-    destTotalTradeVolumeId
-  );
+  let srcTotalTradeVolume = getOrCreateTotalTradeVolume(srcToken.id);
+  let destTotalTradeVolume = getOrCreateTotalTradeVolume(destToken.id);
 
   srcNetworkTradeVolume.network = networkId;
   destNetworkTradeVolume.network = networkId;
