@@ -23,8 +23,8 @@ import {
   getIdForTradeExecute,
   getOrCreateReserveTrade,
   getOrCreateReserve,
-  getTradingPairId,
-  getOrCreateTradingPair
+  getOrCreateTradingPair,
+  aggregateVolumeTrackingReserveData
 } from "./utils/helpers";
 import {
   ZERO_ADDRESS,
@@ -54,26 +54,13 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
   let srcToken = getOrCreateToken(event.params.src);
   let destToken = getOrCreateToken(event.params.destToken);
 
-  let tradingPairID = getTradingPairId(
+  aggregateVolumeTrackingReserveData(
     event.address.toHexString(),
-    event.params.src.toHexString(),
-    event.params.destToken.toHexString()
+    srcToken,
+    destToken,
+    event.params.srcAmount,
+    event.params.destAmount
   );
-  let tradingPair = getOrCreateTradingPair(tradingPairID, false);
-
-  tradingPair.rawTotalSrcReceived =
-    tradingPair.rawTotalSrcReceived + event.params.srcAmount;
-
-  tradingPair.rawTotalDestReturned =
-    tradingPair.rawTotalDestReturned + event.params.destAmount;
-
-  tradingPair.actualTotalSrcReceived =
-    tradingPair.actualTotalSrcReceived +
-    toDecimal(event.params.srcAmount, srcToken.decimals);
-
-  tradingPair.actualTotalDestReturned =
-    tradingPair.actualTotalDestReturned +
-    toDecimal(event.params.destAmount, destToken.decimals);
 
   trade.src = event.params.src.toHexString();
   trade.dest = event.params.destToken.toHexString();
@@ -172,26 +159,13 @@ export function handleOrderbookTrade(event: OrderbookReserveTrade): void {
   let srcToken = getOrCreateToken(event.params.srcToken);
   let destToken = getOrCreateToken(event.params.dstToken);
 
-  let tradingPairID = getTradingPairId(
+  aggregateVolumeTrackingReserveData(
     event.address.toHexString(),
-    event.params.srcToken.toHexString(),
-    event.params.dstToken.toHexString()
+    srcToken,
+    destToken,
+    event.params.srcAmount,
+    event.params.dstAmount
   );
-  let tradingPair = getOrCreateTradingPair(tradingPairID, false);
-
-  tradingPair.rawTotalSrcReceived =
-    tradingPair.rawTotalSrcReceived + event.params.srcAmount;
-
-  tradingPair.rawTotalDestReturned =
-    tradingPair.rawTotalDestReturned + event.params.dstAmount;
-
-  tradingPair.actualTotalSrcReceived =
-    tradingPair.actualTotalSrcReceived +
-    toDecimal(event.params.srcAmount, srcToken.decimals);
-
-  tradingPair.actualTotalDestReturned =
-    tradingPair.actualTotalDestReturned +
-    toDecimal(event.params.dstAmount, destToken.decimals);
 
   trade.src = event.params.srcToken.toHexString();
   trade.dest = event.params.dstToken.toHexString();

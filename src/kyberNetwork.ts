@@ -23,9 +23,15 @@ import {
   getOrCreateReserve,
   getOrCreateNetwork,
   getOrCreateTradingPair,
-  getTradingPairId
+  getTradingPairId,
+  aggregateVolumeTrackingNetworkData
 } from "./utils/helpers";
-import { ZERO_ADDRESS, ETH_ADDRESS, INITIAL_NETWORK } from "./utils/constants";
+import {
+  ZERO_ADDRESS,
+  ETH_ADDRESS,
+  INITIAL_NETWORK,
+  BIGINT_ONE
+} from "./utils/constants";
 import { toDecimal } from "./utils/decimals";
 
 export function handleKyberNetworkSetEnable(
@@ -56,6 +62,17 @@ export function handleAddReserveToNetwork(event: AddReserveToNetwork): void {
   reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
   reserve.save();
 
+  let networkId = event.address.toHexString();
+  let network = getOrCreateNetwork(networkId, false);
+  if (network != null) {
+    network.reservesAmount = network.reservesAmount + BIGINT_ONE;
+    if (event.params.isPermissionless) {
+      network.permissionlessReservesAmount =
+      network.permissionlessReservesAmount + BIGINT_ONE;
+    }
+    network.save();
+  }
+
   KyberReserve.create(event.params.reserve);
 }
 
@@ -79,20 +96,35 @@ export function handleAddReserveToNetworkV1(event: AddReserveToNetwork1): void {
   reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
   reserve.save();
 
+  let networkId = event.address.toHexString();
+  let network = getOrCreateNetwork(networkId, false);
+  if (network != null) {
+    network.reservesAmount = network.reservesAmount + BIGINT_ONE;
+    network.save();
+  }
+
   KyberReserve.create(event.params.reserve);
 }
 
 export function handleRemoveReserveFromNetwork(
   event: RemoveReserveFromNetwork
 ): void {
+  let networkId = event.address.toHexString();
   let id = event.params.reserve.toHexString();
   let reserve = getOrCreateReserve(id, false);
+  let network = getOrCreateNetwork(networkId, false);
   if (reserve == null) {
     log.warning("Could not load removed reserve. {}", [id]);
     return;
   } else {
     reserve.isRemoved = true;
     reserve.save();
+    if (network == null) {
+      log.warning("Could not load network. {}", [networkId]);
+    } else {
+      network.reservesAmount = network.reservesAmount - BIGINT_ONE;
+      network.save();
+    }
   }
 }
 
@@ -153,6 +185,14 @@ export function handleKyberTradeV1(event: KyberTradeV1): void {
   let srcToken = getOrCreateToken(event.params.src);
   let destToken = getOrCreateToken(event.params.dest);
 
+  aggregateVolumeTrackingNetworkData(
+    event.address.toHexString(),
+    srcToken,
+    destToken,
+    event.params.actualSrcAmount,
+    event.params.actualDestAmount
+  );
+
   trade.trader = user.id;
   trade.src = event.params.src.toHexString();
   trade.dest = event.params.dest.toHexString();
@@ -172,6 +212,14 @@ export function handleKyberTradeV1(event: KyberTradeV1): void {
   trade.createdAtLogIndex = event.logIndex;
   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
   trade.save();
+
+
+  let networkId = event.address.toHexString();
+  let network = getOrCreateNetwork(networkId, false);
+  if (network != null) {
+    network.tradesAmount = network.tradesAmount + BIGINT_ONE;
+    network.save();
+  }
 }
 
 export function handleKyberTradeV2(event: KyberTradeV2): void {
@@ -180,6 +228,14 @@ export function handleKyberTradeV2(event: KyberTradeV2): void {
   let user = getOrCreateUser(event.params.srcAddress);
   let srcToken = getOrCreateToken(event.params.srcToken);
   let destToken = getOrCreateToken(event.params.destToken);
+
+  aggregateVolumeTrackingNetworkData(
+    event.address.toHexString(),
+    srcToken,
+    destToken,
+    event.params.srcAmount,
+    event.params.destAmount
+  );
 
   trade.trader = user.id;
   trade.src = event.params.srcToken.toHexString();
@@ -197,6 +253,13 @@ export function handleKyberTradeV2(event: KyberTradeV2): void {
   trade.createdAtLogIndex = event.logIndex;
   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
   trade.save();
+
+  let networkId = event.address.toHexString();
+  let network = getOrCreateNetwork(networkId, false);
+  if (network != null) {
+    network.tradesAmount = network.tradesAmount + BIGINT_ONE;
+    network.save();
+  }
 }
 
 export function handleKyberTrade(event: KyberTrade): void {
@@ -205,6 +268,14 @@ export function handleKyberTrade(event: KyberTrade): void {
   let user = getOrCreateUser(event.params.trader);
   let srcToken = getOrCreateToken(event.params.src);
   let destToken = getOrCreateToken(event.params.dest);
+
+  aggregateVolumeTrackingNetworkData(
+    event.address.toHexString(),
+    srcToken,
+    destToken,
+    event.params.srcAmount,
+    event.params.dstAmount
+  );
 
   trade.trader = user.id;
   trade.src = event.params.src.toHexString();
@@ -224,4 +295,11 @@ export function handleKyberTrade(event: KyberTrade): void {
   trade.createdAtLogIndex = event.logIndex;
   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
   trade.save();
+
+  let networkId = event.address.toHexString();
+  let network = getOrCreateNetwork(networkId, false);
+  if (network != null) {
+    network.tradesAmount = network.tradesAmount + BIGINT_ONE;
+    network.save();
+  }
 }

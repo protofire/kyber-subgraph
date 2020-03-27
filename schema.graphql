@@ -90,6 +90,9 @@ type Reserve @entity {
   createdAtBlockNumber: BigInt!
   createdAtLogIndex: BigInt!
   createdAtTransactionHash: String!
+
+  "Amount of trades done through this reserve"
+  tradesAmount: BigInt!
 }
 
 type Order @entity {
@@ -131,6 +134,18 @@ type Network @entity {
 
   "Reserves on this network"
   reserves: [Reserve!]! @derivedFrom(field: "network")
+
+  "Amount of reserves (any type) currently on this network"
+  reservesAmount: BigInt!
+
+  "Amount of permissionless reserves currently on this network"
+  permissionlessReservesAmount: BigInt!
+
+  "Total amount of trades done trough this network"
+  tradesAmount: BigInt!
+
+  "List of network-level 'volume of trade' for each token on the network"
+  tokenTradeVolume: [NetworkTradeVolume!]! @derivedFrom(field:"network")
 }
 
 type ReserveTrade @entity {
@@ -163,7 +178,7 @@ type ReserveTrade @entity {
 }
 
 type TradingPair @entity {
-  "This entity represents a trading pair listed for a specific reserve, the status of said trading pair and the total amount of tokens traded for this specific reserve"
+  "This entity represents a trading pair listed for a specific reserve and the status of said trading pair"
   id: ID!
   reserve: Reserve!
 
@@ -172,18 +187,6 @@ type TradingPair @entity {
 
   "Destination token"
   dest: Token!
-
-  "Total source tokens received to trade for destination tokens. Expressed in the minimal unit for the token"
-  rawTotalSrcReceived: BigInt!
-
-  "Total destination tokens returned to the user in exchange for the source tokens. Expressed in the minimal unit for the token"
-  rawTotalDestReturned: BigInt!
-
-  "Normalized value of rawTotalSrcReceived so it's expressed in the base unit of the token"
-  actualTotalSrcReceived: BigDecimal!
-
-  "Normalized value of rawTotalDestReturned so it's expressed in the base unit of the token"
-  actualTotalDestReturned: BigDecimal!
 
   isTradingPairEnabled: Boolean!
 }
@@ -202,4 +205,92 @@ type Token @entity {
   symbol: String!
 
   decimals: Int!
+
+  "List of volume of trade for different networks"
+  networkTradeVolumes: [NetworkTradeVolume!]! @derivedFrom(field: "token")
+
+  "List of volume of trade for different reserves"
+  reserveTradeVolumes: [ReserveTradeVolume!]! @derivedFrom(field: "token")
+
+  "List of volume of trade for different reserves"
+  totalTradeVolume: [TotalTradeVolume!]! @derivedFrom(field: "token")
+}
+
+type NetworkTradeVolume @entity {
+  "This entity represents the volume of trade of a certain token within a whole network"
+  id: ID!
+
+  network: Network!
+
+  token: Token!
+
+  "Total volume traded. Includes sold and bought. Expressed in the minimal unit for the token"
+  rawTotalVolume: BigInt!
+
+  "Volume of tokens sold to the network. Expressed in the minimal unit for the token"
+  rawAmountSold: BigInt!
+
+  "Volume of tokens bought from the network. Expressed in the minimal unit for the token"
+  rawAmountBought: BigInt!
+
+  "Normalized value of rawTotalVolume so it's expressed in the base unit of the token"
+  actualTotalVolume: BigDecimal!
+
+  "Normalized value of rawAmountSoldToNetwork so it's expressed in the base unit of the token"
+  actualAmountSold: BigDecimal!
+
+  "Normalized value of rawAmountBoughtFromNetwork so it's expressed in the base unit of the token"
+  actualAmountBought: BigDecimal!
+}
+
+type ReserveTradeVolume @entity {
+  "This entity represents the volume of trade of a certain token within a whole reserve"
+  id: ID!
+
+  reserve: Reserve!
+
+  token: Token!
+
+  "Total volume traded. Includes sold and bought. Expressed in the minimal unit for the token"
+  rawTotalVolume: BigInt!
+
+  "Volume of tokens sold to the reserve. Expressed in the minimal unit for the token"
+  rawAmountSold: BigInt!
+
+  "Volume of tokens bought from the reserve. Expressed in the minimal unit for the token"
+  rawAmountBought: BigInt!
+
+  "Normalized value of rawTotalVolume so it's expressed in the base unit of the token"
+  actualTotalVolume: BigDecimal!
+
+  "Normalized value of rawAmountSold so it's expressed in the base unit of the token"
+  actualAmountSold: BigDecimal!
+
+  "Normalized value of rawAmountBought so it's expressed in the base unit of the token"
+  actualAmountBought: BigDecimal!
+}
+
+type TotalTradeVolume @entity {
+  "This entity represents the volume of trade of a certain token within the entire Kyber Network"
+  id: ID!
+
+  token: Token!
+
+  "Total volume traded. Includes sold and bought. Expressed in the minimal unit for the token"
+  rawTotalVolume: BigInt!
+
+  "Volume of tokens sold to the reserve. Expressed in the minimal unit for the token"
+  rawAmountSold: BigInt!
+
+  "Volume of tokens bought from the reserve. Expressed in the minimal unit for the token"
+  rawAmountBought: BigInt!
+
+  "Normalized value of rawTotalVolume so it's expressed in the base unit of the token"
+  actualTotalVolume: BigDecimal!
+
+  "Normalized value of rawAmountSold so it's expressed in the base unit of the token"
+  actualAmountSold: BigDecimal!
+
+  "Normalized value of rawAmountBought so it's expressed in the base unit of the token"
+  actualAmountBought: BigDecimal!
 }
