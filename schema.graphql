@@ -217,7 +217,7 @@ type Token @entity {
 }
 
 type NetworkTradeVolume @entity {
-  "This entity represents the volume of trade of a certain token within a whole network"
+  "This entity represents the volume of trade of a certain token within a whole network. The ID for each token trade volume is '<NETWORK-ID>-<TOKEN-ADDRESS>'"
   id: ID!
 
   network: Network!
@@ -244,7 +244,7 @@ type NetworkTradeVolume @entity {
 }
 
 type ReserveTradeVolume @entity {
-  "This entity represents the volume of trade of a certain token within a whole reserve"
+  "This entity represents the volume of trade of a certain token within a whole reserve. The ID for each token trade volume is '<RESERVE-ID>-<TOKEN-ADDRESS>'"
   id: ID!
 
   reserve: Reserve!
@@ -271,7 +271,7 @@ type ReserveTradeVolume @entity {
 }
 
 type TotalTradeVolume @entity {
-  "This entity represents the volume of trade of a certain token within the entire Kyber Network"
+  "This entity represents the volume of trade of a certain token within the entire Kyber Network. The ID for each token trade volume is '<TOKEN-ADDRESS>'"
   id: ID!
 
   token: Token!
