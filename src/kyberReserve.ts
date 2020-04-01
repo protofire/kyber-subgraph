@@ -23,6 +23,7 @@ import {
   getIdForTradeExecute,
   getOrCreateReserveTrade,
   getOrCreateReserve,
+  getOrCreateNetwork,
   getOrCreateTradingPair,
   aggregateVolumeTrackingReserveData
 } from "./utils/helpers";
@@ -30,7 +31,8 @@ import {
   ZERO_ADDRESS,
   ETH_ADDRESS,
   ORDERBOOK_RESERVE,
-  KYBER_RESERVE
+  KYBER_RESERVE,
+  BIGINT_ONE
 } from "./utils/constants";
 import { toDecimal } from "./utils/decimals";
 
@@ -44,11 +46,6 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
     log.warning("Reserve is null for address: {}", [
       event.address.toHexString()
     ]);
-  }
-
-  if (reserve.type == null) {
-    reserve.type = KYBER_RESERVE;
-    reserve.save();
   }
 
   let srcToken = getOrCreateToken(event.params.src);
@@ -77,6 +74,12 @@ export function handleTradeExecuteReserve(event: TradeExecute): void {
   trade.createdAtLogIndex = event.logIndex;
   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
   trade.save();
+
+  reserve.tradesAmount = reserve.tradesAmount + BIGINT_ONE;
+  if (reserve.type == null) {
+    reserve.type = KYBER_RESERVE;
+  }
+  reserve.save();
 }
 
 export function handleTradeEnabled(event: TradeEnabled): void {
@@ -100,6 +103,11 @@ export function handleSetContractAddresses(event: SetContractAddresses): void {
 
     return;
   }
+
+  let oldNetwork = getOrCreateNetwork(reserve.network);
+  oldNetwork.reservesAmount = oldNetwork.reservesAmount - BIGINT_ONE;
+  oldNetwork.save();
+
   reserve.network = event.params.network.toHexString();
   reserve.rateContract = event.params.rate.toHexString();
   reserve.sanityContract = event.params.sanity.toHexString();
@@ -107,6 +115,10 @@ export function handleSetContractAddresses(event: SetContractAddresses): void {
     reserve.type = KYBER_RESERVE;
   }
   reserve.save();
+
+  let newNetwork = getOrCreateNetwork(reserve.network);
+  newNetwork.reservesAmount = newNetwork.reservesAmount + BIGINT_ONE;
+  newNetwork.save();
 }
 
 // Orderbooks
@@ -151,11 +163,6 @@ export function handleOrderbookTrade(event: OrderbookReserveTrade): void {
     ]);
   }
 
-  if (reserve.type == null) {
-    reserve.type = ORDERBOOK_RESERVE;
-    reserve.save();
-  }
-
   let srcToken = getOrCreateToken(event.params.srcToken);
   let destToken = getOrCreateToken(event.params.dstToken);
 
@@ -182,6 +189,12 @@ export function handleOrderbookTrade(event: OrderbookReserveTrade): void {
   trade.createdAtLogIndex = event.logIndex;
   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
   trade.save();
+
+  reserve.tradesAmount = reserve.tradesAmount + BIGINT_ONE;
+  if (reserve.type == null) {
+    reserve.type = ORDERBOOK_RESERVE;
+  }
+  reserve.save();
 }
 
 export function handlePartialOrderTaken(event: PartialOrderTaken): void {

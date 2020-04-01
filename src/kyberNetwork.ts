@@ -52,7 +52,9 @@ export function handleAddReserveToNetwork(event: AddReserveToNetwork): void {
 
   let id = event.params.reserve.toHexString();
   let reserve = getOrCreateReserve(id);
-  reserve.network = event.address.toHexString();
+  let networkId = event.address.toHexString();
+  let network = getOrCreateNetwork(networkId, false);
+  reserve.network = networkId;
   reserve.isPermissionless = event.params.isPermissionless;
   reserve.isRemoved = false;
   reserve.isTradeEnabled = true;
@@ -62,15 +64,18 @@ export function handleAddReserveToNetwork(event: AddReserveToNetwork): void {
   reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
   reserve.save();
 
-  let networkId = event.address.toHexString();
-  let network = getOrCreateNetwork(networkId, false);
   if (network != null) {
     network.reservesAmount = network.reservesAmount + BIGINT_ONE;
     if (event.params.isPermissionless) {
       network.permissionlessReservesAmount =
-      network.permissionlessReservesAmount + BIGINT_ONE;
+        network.permissionlessReservesAmount + BIGINT_ONE;
     }
     network.save();
+  } else {
+    log.warning(
+      "ADD TO NETWORK NEW. Network with id {} is null on add reserve with id {}",
+      [networkId, id]
+    );
   }
 
   KyberReserve.create(event.params.reserve);
@@ -86,7 +91,9 @@ export function handleAddReserveToNetworkV1(event: AddReserveToNetwork1): void {
 
   let id = event.params.reserve.toHexString();
   let reserve = getOrCreateReserve(id);
-  reserve.network = event.address.toHexString();
+  let networkId = event.address.toHexString();
+  let network = getOrCreateNetwork(networkId, false);
+  reserve.network = networkId;
   reserve.isPermissionless = false;
   reserve.isRemoved = false;
   reserve.isTradeEnabled = true;
@@ -96,11 +103,14 @@ export function handleAddReserveToNetworkV1(event: AddReserveToNetwork1): void {
   reserve.createdAtTransactionHash = event.transaction.hash.toHexString();
   reserve.save();
 
-  let networkId = event.address.toHexString();
-  let network = getOrCreateNetwork(networkId, false);
   if (network != null) {
     network.reservesAmount = network.reservesAmount + BIGINT_ONE;
     network.save();
+  } else {
+    log.warning(
+      "ADD TO NETWORK V1. Network with id {} is null on add reserve with id {}",
+      [networkId, id]
+    );
   }
 
   KyberReserve.create(event.params.reserve);
@@ -123,6 +133,10 @@ export function handleRemoveReserveFromNetwork(
       log.warning("Could not load network. {}", [networkId]);
     } else {
       network.reservesAmount = network.reservesAmount - BIGINT_ONE;
+      if (reserve.isPermissionless) {
+        network.permissionlessReservesAmount =
+          network.permissionlessReservesAmount - BIGINT_ONE;
+      }
       network.save();
     }
   }
@@ -212,7 +226,6 @@ export function handleKyberTradeV1(event: KyberTradeV1): void {
   trade.createdAtLogIndex = event.logIndex;
   trade.createdAtTransactionHash = event.transaction.hash.toHexString();
   trade.save();
-
 
   let networkId = event.address.toHexString();
   let network = getOrCreateNetwork(networkId, false);

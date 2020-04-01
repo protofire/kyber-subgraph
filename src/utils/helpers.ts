@@ -164,6 +164,8 @@ export function getOrCreateNetwork(
     network.reservesAmount = BIGINT_ZERO;
     network.tradesAmount = BIGINT_ZERO;
     network.permissionlessReservesAmount = BIGINT_ZERO;
+    network.isCurrentNetwork = false;
+    network.isEnabled = false;
   }
 
   return network as Network;
