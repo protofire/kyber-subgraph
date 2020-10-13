@@ -11,3 +11,7 @@ We index NetworkProxy, Networks, Reserves, Trades, Orders and some metadata from
 We keep some aggregated data of the total volume of trade in different levels, a reserve-wide level, a network-wide level (network as in network contract), and a total level. We do this so that it's possible to calculate not only the whole volume of trade of any token, but also in which reserves those trades are mostly happening.
 
 Also with the total aggregated volume of trade and a cool feature of the Graph v0.17 called "time travel queries", it's possible to calculate volume of trade for any interval of time. [Here's an article](https://blocklytics.org/blog/ethereum-blocks-subgraph-made-for-time-travel/) that better explains this concept and how to use it.
+
+### Further documentation
+
+This project includes restructuredtext sources built with [sphinx](https://www.sphinx-doc.org/) and hosted on [its dedicated readthedocs](https://kyber-subgraph.readthedocs.io/en/latest/)
