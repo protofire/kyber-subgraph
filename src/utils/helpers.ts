@@ -12,7 +12,7 @@ import {
   NetworkTradeVolume
 } from "../../generated/schema";
 import { ERC20 } from "../../generated/KyberNetworkProxy/ERC20";
-import { Address, EthereumEvent, BigInt, log } from "@graphprotocol/graph-ts";
+import { Address, ethereum, BigInt, log } from "@graphprotocol/graph-ts";
 import { DEFAULT_DECIMALS, toDecimal } from "./decimals";
 import {
   ZERO_ADDRESS,
@@ -24,7 +24,7 @@ import {
   MKR_ADDRESS
 } from "./constants";
 
-export function getIdForTradeExecute(event: EthereumEvent): string {
+export function getIdForTradeExecute(event: ethereum.Event): string {
   return event.block.number
     .toHexString()
     .concat("-")

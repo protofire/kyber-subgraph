@@ -13,7 +13,7 @@ dataSources:
       startBlock: 5911438
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.3
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
       file: ./src/kyberNetworkProxy.ts
       entities:
@@ -36,7 +36,7 @@ dataSources:
       startBlock: 5049196
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.3
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
       file: ./src/kyberNetwork.ts
       entities:
@@ -73,7 +73,7 @@ templates:
       abi: MergedKyberReserve
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.3
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
       file: ./src/kyberReserve.ts
       entities:
@@ -113,7 +113,7 @@ templates:
       abi: KyberNetwork
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.3
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
       file: ./src/kyberNetwork.ts
       entities:
